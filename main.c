@@ -83,20 +83,25 @@ void get_sockaddr(struct sockaddr_storage* client)
  */
 static res_t exchange_methods(fd_t client)
 {
-    /* Buffer to read METHOD selection message (1 + 1 + 255 bytes)*/
+    /* Buffer to read METHOD selection message (maximum 257 bytes)*/
     char buffer[BUFSIZE + 1];
-    if(recvf(client, buffer, sizeof(buffer)) == -1) return -1;
 
-    /* If the version is incorrect then return -1 */
-    if(buffer[METHODS_FIELD_VERSION] != SOCKS_VERSION) return -1;
+    /* Get first two bytes to figure out how many more methods there are to receive */
+    if(recvf(client, buffer, 2) == -1) return -1;
+
+    /* Check if first 2 bytes of the protocol are done properly*/
+    if(buffer[METHODS_FIELD_VERSION] != SOCKS_VERSION || buffer[METHODS_FIELD_NMETHODS] == 0) return -1;
+
+    /* Receive that amount of methods */
+    if(recvf(client, buffer+2, buffer[1]) == -1) return -1;
 
     /* Variable for the method we choose, NOMETHOD by default */
     unsigned char method = METHODS_VAR_NOMETHOD;
 
     /* Loop over methods until we agree on one */
-    for(index_t i = 2; i < buffer[METHODS_FIELD_NMETHODS]; i++)
+    for(index_t i = 2; i < buffer[METHODS_FIELD_NMETHODS]; ++i)
     {
-        /* We prefer to procced with no authentication */
+        /* We prefer to proceed with no authentication */
         if(((unsigned char)buffer[i]) == METHODS_VAR_NOAUTH)
         {
             method = METHODS_VAR_NOAUTH;
@@ -104,19 +109,14 @@ static res_t exchange_methods(fd_t client)
         }
     }
 
-    /* Reply to send */
+    /* Send chosen method */
     char choice[2] = {SOCKS_VERSION, (char)method};
     sendf(client, choice, sizeof(choice));
 
-    /* If we did not find any good method we terminate */
-    if(method != METHODS_VAR_NOMETHOD)
-    {
-        return 0; /* Good, we've found a method */
-    }
-    else
-    {
-        return -1; /* Couldn't agree on anything, exit */
-    }
+    /* If we did not find any method we terminate */
+    int ret_val = (method != METHODS_VAR_NOMETHOD) ? 0 : -1;
+    return ret_val;
+
 }
 
 
@@ -124,21 +124,28 @@ static res_t exchange_methods(fd_t client)
 
 /**
  *
- * @param client
- * @param ss
- * @return
+ * @param client - client socket to get request from
+ * @param ss - storage for ip and port from client's request
+ * @return type of request
  */
-static res_t get_request(fd_t client, struct sockaddr_storage* ss)
+static res_t evaluate_request(fd_t client, struct sockaddr_storage* ss)
 {
+    /* Buffer for client's request */
     char request[BUFSIZE];
-    recvf(client, request, sizeof(request));
 
-    if(request[0] != SOCKS_VERSION) return -1;
+    /* Receive first four bytes to determine the length of the rest */
+    recvf(client, request, 4);
+
+    /* Check if the 4 bytes of the protocol were done properly */
+    if(request[0] != SOCKS_VERSION || request[2] != 0x00) return -1;
 
     switch(request[3])
     {
         case IPV4:
         {
+            /* Get 4 byte IPv4-address and 2 byte port */
+            recvf(client, request+4, 6);
+
             ss->ss_family = AF_INET;
             memcpy(getaddrss(ss), request + 4, 4); // IPv4 Address
             memcpy(getportss(ss), request + 8, 2); // Port
@@ -148,6 +155,9 @@ static res_t get_request(fd_t client, struct sockaddr_storage* ss)
 
         case IPV6:
         {
+            /* Get 16 byte IPv6-address and 2 byte port */
+            recvf(client, request+4, 18);
+
             ss->ss_family = AF_INET6;
             memcpy(getaddrss(ss), request + 4, 16); // IPv6 Address
             memcpy(getportss(ss), request + 20, 2); // Port
@@ -157,7 +167,16 @@ static res_t get_request(fd_t client, struct sockaddr_storage* ss)
 
         case DOMAINNAME:
         {
-            dnslookup();
+            /* Get length of the following domain name */
+            recvf(client, request+4, 1);
+
+            /* Receive domain name */
+            recvf(client, request+5, request[4]);
+
+            /* DNS resolution of the given doman */
+            dnslookup(request+5, request[4]);
+
+
         }
 
         default:
@@ -190,6 +209,8 @@ static void message_loop(fd_t client, fd_t server)
         if(r == -1) return;
         if(r == 0) return;
 
+	char client_buf[BUFIZE];
+	char server_buf[BUFSIZE];
 
         if(fd[0].revents & POLLIN)
         {
@@ -228,7 +249,7 @@ static void* process_client(void* arg)
     }
     else
     {
-        message(MSGTYPE_ERROR, "SOCKS5 - EXCHANGING METHODS WITH CLIENT");
+        message(MSGTYPE_OK, "SOCKS5 - EXCHANGING METHODS WITH CLIENT");
     }
 
     /* struct to contain user's ip and port*/
