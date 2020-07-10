@@ -18,41 +18,12 @@
 #include "include/io.h"
 #include "include/convert.h"
 #include "include/dnslookup.h"
+#include "include/socks.h"
+#include "include/message.h"
+#include "include/methods.h"
 
-#define BUFSIZE 256
-#define SOCKS_PORT "1080"
-#define SOCKS_VERSION 0x05
+static unsigned int FLAGS = 0x0;
 
-
-
-static unsigned char FLAGS = 0x0;
-static long MAX_CLIENTS = 10;
-
-
-void message(enum MSGTYPE msgtype, char* msg)
-{
-    if(FLAGS & BM_OPT_VERBOSE)
-    {
-        char* code = 0;
-        switch((int)msgtype)
-        {
-            case MSGTYPE_ERROR:
-                fprintf(stderr,"[ ERROR ]  %s\n", msg);
-                return;
-            case MSGTYPE_OK:
-                code = "OK";
-                break;
-            case MSGTYPE_WARNING:
-                code = "WARNING";
-                break;
-            case MSGTYPE_INFO:
-                code = "INFO";
-                break;
-        }
-
-        fprintf(stdout,"[ %s ]  %s\n", code, msg);
-    }
-}
 
 
 /*
@@ -68,131 +39,6 @@ void get_sockaddr(struct sockaddr_storage* client)
 */
 
 
-/* TODO: SPLIT THESE TO FILE */
-/**
- * Receives client's supported methods and sends one back
- * If client supports no authentification we prefer it
- * Either way we send NO_METHOD back indicating that it was a bad negotiation
- * And terminate the connection
- *
- * @param client Socket to read from
- * @param buf Buffer that gets filled with the clients message
- * @param bufsize Buffer size
- *
- * @return 0 if success, -1 on error
- */
-static res_t exchange_methods(fd_t client)
-{
-    /* Buffer to read METHOD selection message (maximum 257 bytes)*/
-    char buffer[BUFSIZE + 1];
-
-    /* Get first two bytes to figure out how many more methods there are to receive */
-    if(recvf(client, buffer, 2) == -1) return -1;
-
-    /* Check if first 2 bytes of the protocol are done properly*/
-    if(buffer[METHODS_FIELD_VERSION] != SOCKS_VERSION || buffer[METHODS_FIELD_NMETHODS] == 0) return -1;
-
-    /* Receive that amount of methods */
-    if(recvf(client, buffer+2, buffer[1]) == -1) return -1;
-
-    /* Variable for the method we choose, NOMETHOD by default */
-    unsigned char method = METHODS_VAR_NOMETHOD;
-
-    /* Loop over methods until we agree on one */
-    for(index_t i = 2; i < buffer[METHODS_FIELD_NMETHODS]; ++i)
-    {
-        /* We prefer to proceed with no authentication */
-        if(((unsigned char)buffer[i]) == METHODS_VAR_NOAUTH)
-        {
-            method = METHODS_VAR_NOAUTH;
-            break;
-        }
-    }
-
-    /* Send chosen method */
-    char choice[2] = {SOCKS_VERSION, (char)method};
-    sendf(client, choice, sizeof(choice));
-
-    /* If we did not find any method we terminate */
-    int ret_val = (method != METHODS_VAR_NOMETHOD) ? 0 : -1;
-    return ret_val;
-
-}
-
-
-/* TODO: WHAT IF WE NEED TO DO A DNS LOOKUP */
-
-/**
- *
- * @param client - client socket to get request from
- * @param ss - storage for ip and port from client's request
- * @return type of request
- */
-static res_t evaluate_request(fd_t client, struct sockaddr_storage* ss)
-{
-    /* Buffer for client's request */
-    char request[BUFSIZE];
-
-    /* Receive first four bytes to determine the length of the rest */
-    recvf(client, request, 4);
-
-    /* Check if the 4 bytes of the protocol were done properly */
-    if(request[0] != SOCKS_VERSION || request[2] != 0x00) return -1;
-
-    switch(request[3])
-    {
-        case IPV4:
-        {
-            /* Get 4 byte IPv4-address and 2 byte port */
-            recvf(client, request+4, 6);
-
-            ss->ss_family = AF_INET;
-            memcpy(getaddrss(ss), request + 4, 4); // IPv4 Address
-            memcpy(getportss(ss), request + 8, 2); // Port
-
-            break;
-        }
-
-        case IPV6:
-        {
-            /* Get 16 byte IPv6-address and 2 byte port */
-            recvf(client, request+4, 18);
-
-            ss->ss_family = AF_INET6;
-            memcpy(getaddrss(ss), request + 4, 16); // IPv6 Address
-            memcpy(getportss(ss), request + 20, 2); // Port
-
-            break;
-        }
-
-        case DOMAINNAME:
-        {
-            /* Get length of the following domain name */
-            recvf(client, request+4, 1);
-
-            /* Receive domain name */
-            recvf(client, request+5, request[4]);
-
-            /* DNS resolution of the given doman */
-            dnslookup(request+5, request[4]);
-
-
-        }
-
-        default:
-            return -1;
-    }
-
-    return request[1];
-}
-
-
-/*
- * TODO: I dont like poll here, replace it with either epoll or libevent
- * The thing that worries me is bitwise & against signed integer
- * man poll doesnt say anything on it, cant find anymore info :/
- *
- */
 static void message_loop(fd_t client, fd_t server)
 {
     struct pollfd fd[2];
@@ -242,35 +88,46 @@ static void* process_client(void* arg)
 {
     fd_t client_sock = (fd_t)arg;
 
-    if(exchange_methods(client_sock) == -1)
+
+    /* Exchange method and get the chosen method */
+    method_t method = exchange_methods(client_sock);
+
+    /* Method specific sub-negotiation */
+    switch(method)
     {
-        message(MSGTYPE_ERROR, "SOCKS5 - FAILED TO EXCHANGE METHODS");
-        goto exit;
+        case METHODS_VAR_NOMETHOD:
+        {
+            res_t result = method_userpass(client);
+            break;
+        }
+        case METHODS_VAR_USERPASS
+        {
+            break;
+        }
+        default:
+            break;
     }
-    else
-    {
-        message(MSGTYPE_OK, "SOCKS5 - EXCHANGING METHODS WITH CLIENT");
-    }
+
 
     /* struct to contain user's ip and port*/
     struct sockaddr_storage ss;
 
     /* We get user request and read target address and port to struct */
-    res_t req_type = get_request(client_sock, &ss);
+    res_t req_type = evaluate_request(client_sock, &ss);
     if(req_type == -1)
     {
-        message(MSGTYPE_ERROR, "INCORRECT REQUEST");
+        if(FLAGS & OPT_VERBOSE) message(MSGTYPE_ERROR, "INCORRECT REQUEST");
         goto exit;
     }
 
     switch(req_type)
     {
-        case CONNECT:
+        case REQTYPE_CONNECT:
         {
             fd_t server_sock = socket(AF_INET, SOCK_STREAM, 0);
             if(server_sock != 0)
             {
-                message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
+                if(FLAGS & OPT_VERBOSE) message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
                 goto exit;
             }
 
@@ -284,13 +141,13 @@ static void* process_client(void* arg)
 
             break;
         }
-        case BIND:
+        case REQTYPE_BIND:
         {
             //r = socks5_bind_req(address, sizeof(address), port);
 
             break;
         }
-        case UDP_ASSOCIATE:
+        case REQTYPE_UDP_ASSOCIATE:
         {
             //r = socks5_udpassoc_req(address, sizeof(address), port);
 
@@ -301,7 +158,7 @@ static void* process_client(void* arg)
     }
 
     exit:
-        shutdown(client_sock, 2);
+        shutdown(client_sock, SHUT_RDWR);
         close(client_sock);
         pthread_exit(0);
 }
@@ -357,19 +214,19 @@ int main(int argc, char** argv)
             }
             case '4':
             {
-                FLAGS |= BM_OPT_IPV4;
+                FLAGS |= OPT_IPV4;
                 break;
             }
             case '6':
             {
-                FLAGS |= BM_OPT_IPV6;
+                FLAGS |= OPT_IPV6;
                 break;
             }
             case 'd':
             {
-                if(!(FLAGS & BM_OPT_VERBOSE))
+                if(!(FLAGS & OPT_VERBOSE))
                 {
-                    FLAGS |= BM_OPT_DAEMON;
+                    FLAGS |= OPT_DAEMON;
                     break;
                 }
                 else
@@ -380,9 +237,9 @@ int main(int argc, char** argv)
             }
             case 'v':
             {
-                if(!(FLAGS & BM_OPT_DAEMON))
+                if(!(FLAGS & OPT_DAEMON))
                 {
-                    FLAGS |= BM_OPT_VERBOSE;
+                    FLAGS |= OPT_VERBOSE;
                     break;
                 }
                 else
@@ -393,7 +250,7 @@ int main(int argc, char** argv)
             }
             case 'c':
             {
-                FLAGS |= BM_OPT_MAX_CLIENTS;
+                FLAGS |= OPT_MAX_CLIENTS;
                 MAX_CLIENTS = strtol(optarg, NULL, 10);
                 if(MAX_CLIENTS == 0L || errno == ERANGE)
                 {
@@ -417,19 +274,19 @@ int main(int argc, char** argv)
     while(c != -1);
 
     /* We need to set standard arguments if there weren't specified to configure program */
-    if(!(FLAGS & BM_OPT_VERBOSE) && !(FLAGS & BM_OPT_DAEMON))
+    if(!(FLAGS & OPT_VERBOSE) && !(FLAGS & OPT_DAEMON))
     {
-        FLAGS |= BM_OPT_VERBOSE;
+        FLAGS |= OPT_VERBOSE;
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT OPTION --verbose");
     }
 
-    if(!(FLAGS & BM_OPT_IPV4) && !(FLAGS & BM_OPT_IPV6))
+    if(!(FLAGS & OPT_IPV4) && !(FLAGS & OPT_IPV6))
     {
-        FLAGS |= BM_OPT_IPV4;
+        FLAGS |= OPT_IPV4;
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT OPTION --ipv4");
     }
 
-    if(!(FLAGS & BM_OPT_MAX_CLIENTS))
+    if(!(FLAGS & OPT_MAX_CLIENTS))
     {
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT ARGUMENT FOR OPTION --max-client=10 ");
     }
@@ -444,7 +301,7 @@ int main(int argc, char** argv)
     struct addrinfo *results, *p_res;
 
 
-    hints.ai_family = (FLAGS & BM_OPT_IPV4) ? AF_INET : AF_INET6;
+    hints.ai_family = (FLAGS & OPT_IPV4) ? AF_INET : AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
     hints.ai_flags = AI_NUMERICSERV | AI_ADDRCONFIG | AI_PASSIVE;

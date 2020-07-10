@@ -5,7 +5,7 @@
 #ifndef SOCKS5_SERVER_IO_H
 #define SOCKS5_SERVER_IO_H
 
-#include "server/include/types.h"
+#include "../include/types.h"
 
 res_t recvf(fd_t sock, char* buf, size_t len);
 

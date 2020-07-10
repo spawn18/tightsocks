@@ -1,17 +1,23 @@
-#ifndef SOCKS5_SERVER_TYPES_H
-#define SOCKS5_SERVER_TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 typedef int fd_t;
 typedef int res_t;
 typedef char index_t;
+typedef char method_t;
+
+const char SOCKS_VERSION = 0x05;
+const char* SOCKS_PORT = "1080";
+const int BUFSIZE = 512;
+const int MAX_CLIENTS = 10;
 
 enum OPTS : unsigned char
 {
-    BM_OPT_IPV6 = 0x01,
-    BM_OPT_IPV4 = 0x02,
-    BM_OPT_VERBOSE = 0x04,
-    BM_OPT_DAEMON = 0x08,
-    BM_OPT_MAX_CLIENTS = 0x10
+    OPT_IPV6 = 0x01,
+    OPT_IPV4 = 0x02,
+    OPT_VERBOSE = 0x04,
+    OPT_DAEMON = 0x08,
+    OPT_MAX_CLIENTS = 0x10
 };
 
 enum MSGTYPE : unsigned char
@@ -35,18 +41,18 @@ enum METHODS : unsigned char
 };
 
 
-enum COMMANDS : unsigned char
+enum REQTYPE : unsigned char
 {
-    CONNECT = 0x01,
-    BIND,
-    UDP_ASSOCIATE
+    REQTYPE_CONNECT = 0x01,
+    REQTYPE_BIND,
+    REQTYPE_UDP_ASSOCIATE
 };
 
 enum ADDRTYPE : unsigned char
 {
-    IPV4 = 0x01,
-    DOMAINNAME = 0x03,
-    IPV6,
+    ADDRTYPE_IPV4 = 0x01,
+    ADDRTYPE_DOMAINNAME = 0x03,
+    ADDRTYPE_IPV6,
 };
 
 #endif

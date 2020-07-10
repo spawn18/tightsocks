@@ -8,7 +8,13 @@ add_executable(socks
         include/dnslookup.h
         include/io.h
         include/types.h
+        include/socks.h
+        include/message.h
+        include/methods.h
         src/convert.c
         src/dnslookup.c
         src/io.c
+        src/socks.c
+        src/message.c
+        src/methods.c
         main.c)
