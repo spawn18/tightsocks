@@ -106,12 +106,7 @@ static void* process_client(void* arg)
     struct sockaddr_storage ss;
 
     /* We get user request and read target address and port to struct */
-    res_t req_type = evaluate_request(client, &ss);
-    if(req_type == -1)
-    {
-        if(FLAGS & OPT_VERBOSE) message(MSGTYPE_ERROR, "INCORRECT REQUEST");
-        goto exit;
-    }
+    enum REPLY reply = evaluate_request(client);
 
     switch(req_type)
     {

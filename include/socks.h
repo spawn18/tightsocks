@@ -7,6 +7,6 @@
 #include "types.h"
 
 method_t exchange_methods(fd_t);
-void evaluate_request(fd_t, struct sockaddr_storage*);
+enum REPLY evaluate_request(fd_t);
 
 #endif
