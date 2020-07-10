@@ -5,7 +5,6 @@ typedef int fd_t;
 typedef int res_t;
 typedef char index_t;
 typedef char method_t;
-typedef int errno_t;
 
 extern const char SOCKS_VERSION;
 extern const char* SOCKS_PORT;

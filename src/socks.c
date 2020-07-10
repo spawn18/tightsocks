@@ -54,7 +54,7 @@ method_t exchange_methods(fd_t client)
 }
 
 
-errno_t evaluate_request(fd_t client)
+void evaluate_request(fd_t client)
 {
     /* Buffer for client's request */
     char request[BUFSIZE];
@@ -110,7 +110,6 @@ errno_t evaluate_request(fd_t client)
             goto exit;
     }
 
-    int errno_var = 0;
 
     switch(request[1])
     {
