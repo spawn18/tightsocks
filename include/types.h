@@ -5,11 +5,13 @@ typedef int fd_t;
 typedef int res_t;
 typedef char index_t;
 typedef char method_t;
+typedef int errno_t;
 
-const char SOCKS_VERSION = 0x05;
-const char* SOCKS_PORT = "1080";
-const int BUFSIZE = 512;
-const int MAX_CLIENTS = 10;
+extern const char SOCKS_VERSION;
+extern const char* SOCKS_PORT;
+extern const int BUFSIZE;
+extern const int MAX_CLIENTS;
+extern int FLAGS;
 
 enum OPTS : unsigned char
 {

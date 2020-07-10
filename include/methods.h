@@ -4,6 +4,6 @@
 
 #include "types.h"
 
-res_t method_userpass(fd_t);
+void method_userpass(fd_t);
 
 #endif

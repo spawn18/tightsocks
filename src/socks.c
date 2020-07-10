@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
 
 method_t exchange_methods(fd_t client)
 {
@@ -41,9 +42,9 @@ method_t exchange_methods(fd_t client)
     sendf(client, choice, sizeof(choice));
 
     /* If we did not find any method we terminate */
-    if (method == METHODS_VAR_NOMETHOD)
+    if (method != METHODS_VAR_NOMETHOD)
     {
-        message(MSGTYPE_INFO, "CLIENT REJECTED: NO METHOD CONSENSUS");
+        message(MSGTYPE_ERROR, "CLIENT REJECTED: NO METHOD CONSENSUS");
         close(client);
         pthread_exit(0);
     }
@@ -53,7 +54,7 @@ method_t exchange_methods(fd_t client)
 }
 
 
-res_t evaluate_request(fd_t client, struct sockaddr_storage* ss)
+errno_t evaluate_request(fd_t client)
 {
     /* Buffer for client's request */
     char request[BUFSIZE];
@@ -63,6 +64,8 @@ res_t evaluate_request(fd_t client, struct sockaddr_storage* ss)
 
     /* Check if the 4 bytes of the protocol were done properly */
     if(request[0] != SOCKS_VERSION || request[2] != 0x00) return -1;
+
+    struct sockaddr_storage* ss;
 
     switch(request[3])
     {
@@ -101,12 +104,57 @@ res_t evaluate_request(fd_t client, struct sockaddr_storage* ss)
             /* DNS resolution of the given doman */
             dnslookup(request+5, request[4]);
 
-
         }
 
         default:
-            return -1;
+            goto exit;
     }
 
-    return request[1];
+    int errno_var = 0;
+
+    switch(request[1])
+    {
+        case REQTYPE_CONNECT:
+        {
+            fd_t server_sock = socket(AF_INET, SOCK_STREAM, 0);
+            if(server_sock == -1)
+            {
+                if(FLAGS & OPT_VERBOSE)
+                    message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
+
+                goto exit;
+            }
+
+            if(connect( server_sock, (struct sockaddr*)&ss, sizeof( *((struct sockaddr*)&ss) ) ) == -1)
+            {
+                if(FLAGS & OPT_VERBOSE)
+                    message(MSGTYPE_ERROR, "COULDN'T ESTABLISH CONNECTION TO DESTINATION HOST");
+
+            }
+
+            errno_var = errno;
+
+            break;
+        }
+        case REQTYPE_BIND:
+        {
+
+            break;
+        }
+        case REQTYPE_UDP_ASSOCIATE:
+        {
+
+            break;
+        }
+        default:
+            goto exit;
+    }
+
+    return errno_var;
+
+exit:
+    shutdown(client, SHUT_RDWR);
+    close(client);
+    pthread_exit(0);
+
 }

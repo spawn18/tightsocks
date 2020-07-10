@@ -22,9 +22,6 @@
 #include "include/message.h"
 #include "include/methods.h"
 
-static unsigned int FLAGS = 0x0;
-
-
 
 /*
 void get_sockaddr(struct sockaddr_storage* client)
@@ -86,22 +83,18 @@ static void message_loop(fd_t client, fd_t server)
  */
 static void* process_client(void* arg)
 {
-    fd_t client_sock = (fd_t)arg;
+    fd_t client = (fd_t)arg;
 
 
     /* Exchange method and get the chosen method */
-    method_t method = exchange_methods(client_sock);
+    method_t method = exchange_methods(client);
 
     /* Method specific sub-negotiation */
     switch(method)
     {
-        case METHODS_VAR_NOMETHOD:
+        case METHODS_VAR_USERPASS:
         {
-            res_t result = method_userpass(client);
-            break;
-        }
-        case METHODS_VAR_USERPASS
-        {
+            method_userpass(client);
             break;
         }
         default:
@@ -113,7 +106,7 @@ static void* process_client(void* arg)
     struct sockaddr_storage ss;
 
     /* We get user request and read target address and port to struct */
-    res_t req_type = evaluate_request(client_sock, &ss);
+    res_t req_type = evaluate_request(client, &ss);
     if(req_type == -1)
     {
         if(FLAGS & OPT_VERBOSE) message(MSGTYPE_ERROR, "INCORRECT REQUEST");
@@ -158,8 +151,8 @@ static void* process_client(void* arg)
     }
 
     exit:
-        shutdown(client_sock, SHUT_RDWR);
-        close(client_sock);
+        shutdown(client, SHUT_RDWR);
+        close(client);
         pthread_exit(0);
 }
 

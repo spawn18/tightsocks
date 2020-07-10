@@ -17,4 +17,5 @@ add_executable(socks
         src/socks.c
         src/message.c
         src/methods.c
+        src/types.c
         main.c)

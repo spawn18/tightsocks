@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-res_t method_userpass(fd_t client)
+void method_userpass(fd_t client)
 {
     /* Buffer alloc */
     char buffer[3];
@@ -33,10 +33,6 @@ res_t method_userpass(fd_t client)
     recvf(client, password, buffer+2);
 
     /* Veridy Username/Password via database and proceed */
-
-
-
-
 
 
 }
