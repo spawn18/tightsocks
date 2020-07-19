@@ -83,67 +83,48 @@ static void message_loop(fd_t client, fd_t server)
  */
 static void* process_client(void* arg)
 {
-    fd_t client = (fd_t)arg;
-
+    fd_t client = *(fd_t*)arg;
 
     /* Exchange method and get the chosen method */
     method_t method = exchange_methods(client);
 
     /* Method specific sub-negotiation */
-    switch(method)
+    if(method == METHODS_VAR_USERPASS) method_userpass(client);
+
+    socks_request_t request;
+    socks_get_request(client, &request);
+
+    request_p request_func = NULL;
+
+    if      (request.command == CMD_CONNECT) request_func = &request_connect;
+    else if (request.command == CMD_BIND)    request_func = &request_bind;
+    else                                    request_func = &request_associate;
+
+    request_func(request.address_type, request.address, request.port);
+
+    /* Check if the 4 bytes of the protocol were done properly */
+    if(request[0] != SOCKS_VERSION || request[2] != 0x00)
     {
-        case METHODS_VAR_USERPASS:
-        {
-            method_userpass(client);
-            break;
-        }
-        default:
-            break;
+
+        socks_reply(client, REPLY_GENERAL_ERROR, ADDRTYPE_IPV4, request+4, request+socks_get_port_index(request));
+
+        close(client);
+        pthread_exit(0);
     }
+
+
+
+
+
 
 
     /* struct to contain user's ip and port*/
     struct sockaddr_storage ss;
 
-    /* We get user request and read target address and port to struct */
-    enum REPLY reply = evaluate_request(client);
+    /* Evaluate client's request */
+    fd_t server = wait_for_request(client);
 
-    switch(req_type)
-    {
-        case REQTYPE_CONNECT:
-        {
-            fd_t server_sock = socket(AF_INET, SOCK_STREAM, 0);
-            if(server_sock != 0)
-            {
-                if(FLAGS & OPT_VERBOSE) message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
-                goto exit;
-            }
-
-            if(connect( server_sock, (struct sockaddr*)&ss, sizeof( *((struct sockaddr*)&ss) ) ) != 0)
-            {
-                message(MSGTYPE_ERROR, "COULDN'T ESTABLISH CONNECTION TO PEER");
-                goto exit;
-            }
-
-            message_loop(client_sock, server_sock);
-
-            break;
-        }
-        case REQTYPE_BIND:
-        {
-            //r = socks5_bind_req(address, sizeof(address), port);
-
-            break;
-        }
-        case REQTYPE_UDP_ASSOCIATE:
-        {
-            //r = socks5_udpassoc_req(address, sizeof(address), port);
-
-            break;
-        }
-        default:
-            goto exit;
-    }
+    message_loop(client, server);
 
     exit:
         shutdown(client, SHUT_RDWR);

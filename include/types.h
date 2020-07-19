@@ -1,10 +1,15 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stddef.h>
+
 typedef int fd_t;
 typedef int res_t;
-typedef char index_t;
+typedef unsigned int index_t;
 typedef char method_t;
+
+typedef const char* address_t;
+typedef short port_t;
 
 extern const char SOCKS_VERSION;
 extern const char* SOCKS_PORT;
@@ -12,24 +17,25 @@ extern const int BUFSIZE;
 extern const int MAX_CLIENTS;
 extern int FLAGS;
 
-enum OPTS : unsigned char
-{
-    OPT_IPV6 = 0x01,
-    OPT_IPV4 = 0x02,
-    OPT_VERBOSE = 0x04,
-    OPT_DAEMON = 0x08,
-    OPT_MAX_CLIENTS = 0x10
-};
 
-enum MSGTYPE : unsigned char
+typedef enum OPTS : unsigned char
+{
+    OPT_IPV6 = (1 << 0),
+    OPT_IPV4 = (1 << 1),
+    OPT_VERBOSE = (1 << 2),
+    OPT_DAEMON = (1 << 3),
+    OPT_MAX_CLIENTS = (1 << 4),
+} OPTS;
+
+typedef enum MSGTYPE : unsigned char
 {
     MSGTYPE_ERROR = 24,
     MSGTYPE_OK,
     MSGTYPE_WARNING,
     MSGTYPE_INFO
-};
+} MSGTYPE;
 
-enum METHODS : unsigned char
+typedef enum METHODS : unsigned char
 {
     METHODS_FIELD_VERSION = 0,
     METHODS_FIELD_NMETHODS,
@@ -39,26 +45,26 @@ enum METHODS : unsigned char
     METHODS_VAR_USERPASS,
     METHODS_VAR_NOMETHOD = 0xFF,
 
-};
+} METHODS;
 
 
-enum REQTYPE : unsigned char
+typedef enum COMMAND_TYPE : unsigned char
 {
-    REQTYPE_CONNECT = 0x01,
-    REQTYPE_BIND,
-    REQTYPE_UDP_ASSOCIATE
-};
+    COMMAND_TYPE_CONNECT = 1,
+    COMMAND_TYPE_BIND,
+    COMMAND_TYPE_UDP_ASSOCIATE
+} COMMAND_TYPE;
 
-enum ADDRTYPE : unsigned char
+typedef enum ADDRESS_TYPE : unsigned char
 {
-    ADDRTYPE_IPV4 = 0x01,
-    ADDRTYPE_DOMAINNAME = 0x03,
-    ADDRTYPE_IPV6,
-};
+    ADDRESS_TYPE_IPV4 = 1,
+    ADDRESS_TYPE_DOMAINNAME = 3,
+    ADDRESS_TYPE_IPV6,
+} ADDRESS_TYPE;
 
-enum REPLY : unsigned char
+typedef enum REPLY : unsigned char
 {
-    REPLY_SUCCEEDED = 0x0,
+    REPLY_SUCCEEDED = 0,
     REPLY_GENERAL_ERROR,
     REPLY_CONNECTION_NOT_ALLOWED,
     REPLY_NETWORK_UNREACHABLE,
@@ -67,7 +73,18 @@ enum REPLY : unsigned char
     REPLY_TTL_EXPIRED,
     REPLY_COMMAND_NOT_SUPPORTED,
     REPLY_ADDRESS_TYPE_NOT_SUPPORTED,
-};
+} REPLY;
 
+typedef void (*request_p)(ADDRESS_TYPE, address_t, port_t );
+
+typedef struct socks_request
+{
+    char version;
+    char command;
+    ADDRESS_TYPE address_type;
+    size_t address_size;
+    char* address;
+    short port;
+} socks_request_t;
 
 #endif

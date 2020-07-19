@@ -4,6 +4,7 @@
 #include "../include/convert.h"
 #include "../include/message.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -54,22 +55,11 @@ method_t exchange_methods(fd_t client)
 }
 
 
-enum REPLY evaluate_request(fd_t client)
+enum REPLY wait_for_request(fd_t client)
 {
-    /* Buffer for client's request */
-    char request[BUFSIZE];
-
-    /* Receive first four bytes to determine the length of the rest */
-    recvf(client, request, 4);
-
-    /* Check if the 4 bytes of the protocol were done properly */
-    if(request[0] != SOCKS_VERSION || request[2] != 0x00) return -1;
 
     /* Reply type of the destination host */
     enum REPLY reply = REPLY_GENERAL_ERROR;
-
-    /* IP and Port */
-    struct sockaddr_storage* ss;
 
     /* Address tyoe */
     switch(request[3])
@@ -172,6 +162,145 @@ enum REPLY evaluate_request(fd_t client)
             break;
     }
 
-exit:
-    return reply;
+    return
+}
+
+void socks_reply(fd_t client, enum REPLY reply, enum ADDRTYPE addrtype, const_address_t address, const_port_t port)
+{
+    char bytes = 0;
+    switch(addrtype)
+    {
+        case ADDRTYPE_IPV4:
+            bytes = 4;
+            break;
+        case ADDRTYPE_IPV6:
+            bytes = 16;
+            break;
+        case ADDRTYPE_DOMAINNAME:
+            bytes = 1 + address[0];
+            break;
+        default:
+            // TODO: ERROR
+            break;
+    }
+
+    char* rep = malloc(6 + bytes);
+
+    rep[0] = SOCKS_VERSION;
+    rep[1] = reply;
+    rep[2] = 0x0;
+    rep[3] = addrtype;
+    memcpy(rep+4, address, bytes);
+    memcpy(rep+4+bytes, port, 2);
+
+    sendf(client, rep, 6+bytes);
+
+}
+
+inline index_t socks_get_port_index(const char* reply)
+{
+    index_t i = 0;
+    switch(reply[4])
+    {
+        case ADDRTYPE_IPV4:
+            i = 4;
+            break;
+        case ADDRTYPE_IPV6:
+            i = 16;
+            break;
+        case ADDRTYPE_DOMAINNAME:
+            i = reply[5] + 1;
+            break;
+    }
+
+    return i+4;
+}
+
+inline index_t socks_get_address_size(const char* reply)
+{
+    size_t i = 0;
+    switch(reply[4])
+    {
+        case ADDRTYPE_IPV4:
+            i = 4;
+            break;
+        case ADDRTYPE_IPV6:
+            i = 16;
+            break;
+        case ADDRTYPE_DOMAINNAME:
+            i = reply[5];
+            break;
+    }
+
+    return i;
+}
+
+void socks_set_port(char* reply,  port)
+{
+
+}
+
+void request_connect(ADDRTYPE address_type, address_t address, port_t port)
+{
+
+}
+
+void request_bind(ADDRTYPE address_type, address_t address, port_t port)
+{
+
+}
+
+void request_associate(ADDRTYPE address_type, address_t address, port_t port)
+{
+
+}
+
+void socks_get_request(fd_t client, socks_request_t* sr)
+{
+    /* Buffer for client's request */
+    char request[BUFSIZE];
+
+    /* Receive first 5 bytes to determine the length of the rest */
+    recvf(client, request, 5);
+
+    /* Error handling */
+    if(request[0] != SOCKS_VERSION || request[2] != 0x00 || (request[1] < 0 || request[1] > 3)) {/* ERROR */}
+
+    /* Read address and port accordingly */
+    if (request[3] == ADDRESS_TYPE_DOMAINNAME)
+    {
+        recvf(client, request+5, request[4]+2);
+
+        sr->address_size = request[4];
+        sr->address = malloc(sr->address_size);
+        memcpy(sr->address, (const void *)request[5], sr->address_size);
+        sr->port = (((short)(request[4]+sr->address_size)) << 8) | (request[4]+sr->address_size+1);
+    }
+    else if (request[3] == ADDRESS_TYPE_IPV4)
+    {
+        recvf(client, request+5, 3);
+
+        sr->address_size = 4;
+        sr->address = malloc(sr->address_size);
+        memcpy(sr->address, (const void *)request[4], sr->address_size);
+        sr->port = (((short)(request[3]+4)) << 8) | (request[3]+5);
+    }
+    else if (request[3] == ADDRESS_TYPE_IPV6)
+    {
+        recvf(client, request+5, 15);
+
+        sr->address_size = 16;
+        sr->address = malloc(sr->address_size);
+        memcpy(sr->address, (const void *)request[4], sr->address_size);
+        sr->port = (((short)(request[3]+16)) << 8) | (request[3]+17);
+    }
+    else
+    {
+        /* ERROR */
+    }
+
+    /* Everything is read and now we fill up struct*/
+    sr->version = SOCKS_VERSION;
+    sr->command = request[1];
+    sr->address_type = request[3];
 }
