@@ -10,6 +10,11 @@
 #include <pthread.h>
 #include <errno.h>
 
+unsigned int is_option_set(OPTS opts)
+{
+    return FLAGS & opts;
+}
+
 method_t exchange_methods(fd_t client)
 {
     /* Buffer to read METHOD selection message (maximum 257 bytes)*/
@@ -240,17 +245,57 @@ void socks_set_port(char* reply,  port)
 
 }
 
-void request_connect(ADDRTYPE address_type, address_t address, port_t port)
+void request_connect(ADDRESS_TYPE address_type, address_t address, port_t port)
+{
+    fd_t server = socket(AF_INET, SOCK_STREAM, 0);
+    if(server == -1)
+    {
+        if(is_option_set(OPT_VERBOSE))
+        {
+            message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
+        }
+    }
+
+    struct sockaddr_storage ss;
+    fill_ss(&ss, address_type, address, port);
+
+    REPLY reply;
+    if(connect(server, (struct sockaddr*)&ss, sizeof(*((struct sockaddr*)&ss))) == -1)
+    {
+        if(is_option_set(OPT_VERBOSE))
+        {
+            message(MSGTYPE_ERROR, "COULDN'T ESTABLISH CONNECTION TO DESTINATION HOST");
+        }
+
+        switch(errno)
+        {
+            case EPERM:
+                reply = REPLY_CONNECTION_NOT_ALLOWED;
+                break;
+            case EAFNOSUPPORT:
+                reply = REPLY_ADDRESS_TYPE_NOT_SUPPORTED;
+                break;
+            case ECONNREFUSED:
+            case ETIMEDOUT:
+                reply = REPLY_CONNECTION_REFUSED;
+                break;
+            case ENETUNREACH:
+                reply = REPLY_NETWORK_UNREACHABLE;
+                break;
+        }
+    }
+
+    reply = REPLY_SUCCEEDED;
+
+
+}
+
+void request_bind(ADDRESS_TYPE address_type, address_t address, port_t port)
 {
 
 }
 
-void request_bind(ADDRTYPE address_type, address_t address, port_t port)
-{
-
-}
-
-void request_associate(ADDRTYPE address_type, address_t address, port_t port)
+void request_udp_associate(ADDRERSS_TYPE address_type, address_t address, port_t port)
 {
 
 }
@@ -273,7 +318,7 @@ void socks_get_request(fd_t client, socks_request_t* sr)
 
         sr->address_size = request[4];
         sr->address = malloc(sr->address_size);
-        memcpy(sr->address, (const void *)request[5], sr->address_size);
+        memcpy(sr->address, (void*)request[5], sr->address_size);
         sr->port = (((short)(request[4]+sr->address_size)) << 8) | (request[4]+sr->address_size+1);
     }
     else if (request[3] == ADDRESS_TYPE_IPV4)
@@ -282,7 +327,7 @@ void socks_get_request(fd_t client, socks_request_t* sr)
 
         sr->address_size = 4;
         sr->address = malloc(sr->address_size);
-        memcpy(sr->address, (const void *)request[4], sr->address_size);
+        memcpy(sr->address, (void*)request[4], sr->address_size);
         sr->port = (((short)(request[3]+4)) << 8) | (request[3]+5);
     }
     else if (request[3] == ADDRESS_TYPE_IPV6)

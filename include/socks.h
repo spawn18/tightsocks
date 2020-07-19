@@ -16,10 +16,10 @@ inline index_t socks_get_address_size(const char*);
 
 inline index_t socks_get_port_index(const char*);
 
-void request_connect(ADDRTYPE, address_t, port_t);
-void request_bind(ADDRTYPE, address_t, port_t);
-void request_associate(ADDRTYPE, address_t, port_t);
+void request_connect(ADDRESS_TYPE, address_t, port_t);
+void request_bind(ADDRESS_TYPE, address_t, port_t);
+void request_udp_associate(ADDRESS_TYPE, address_t, port_t);
 
-void socks_get_request(fd_t, socks_request_t*)
+void socks_get_request(fd_t, socks_request_t*);
 
 #endif

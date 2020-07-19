@@ -14,8 +14,8 @@ typedef short port_t;
 extern const char SOCKS_VERSION;
 extern const char* SOCKS_PORT;
 extern const int BUFSIZE;
-extern const int MAX_CLIENTS;
-extern int FLAGS;
+extern int MAX_CLIENTS;
+extern unsigned int FLAGS;
 
 
 typedef enum OPTS : unsigned char

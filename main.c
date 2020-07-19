@@ -35,7 +35,7 @@ void get_sockaddr(struct sockaddr_storage* client)
 }
 */
 
-
+/*
 static void message_loop(fd_t client, fd_t server)
 {
     struct pollfd fd[2];
@@ -74,6 +74,7 @@ static void message_loop(fd_t client, fd_t server)
     }
     while(1);
 }
+*/
 
 /**
  * We call this for every thread, here goes the client <-> server conversation
@@ -95,41 +96,14 @@ static void* process_client(void* arg)
     socks_get_request(client, &request);
 
     request_p request_func = NULL;
-
-    if      (request.command == CMD_CONNECT) request_func = &request_connect;
-    else if (request.command == CMD_BIND)    request_func = &request_bind;
-    else                                    request_func = &request_associate;
+    if      (request.command == COMMAND_TYPE_CONNECT) request_func = &request_connect;
+    else if (request.command == COMMAND_TYPE_BIND)    request_func = &request_bind;
+    else                                              request_func = &request_udp_associate;
 
     request_func(request.address_type, request.address, request.port);
 
-    /* Check if the 4 bytes of the protocol were done properly */
-    if(request[0] != SOCKS_VERSION || request[2] != 0x00)
-    {
-
-        socks_reply(client, REPLY_GENERAL_ERROR, ADDRTYPE_IPV4, request+4, request+socks_get_port_index(request));
-
-        close(client);
-        pthread_exit(0);
-    }
-
-
-
-
-
-
-
-    /* struct to contain user's ip and port*/
-    struct sockaddr_storage ss;
-
-    /* Evaluate client's request */
-    fd_t server = wait_for_request(client);
-
-    message_loop(client, server);
-
-    exit:
-        shutdown(client, SHUT_RDWR);
-        close(client);
-        pthread_exit(0);
+    close(client);
+    pthread_exit(0);
 }
 
 void usage(char* name)
@@ -142,7 +116,7 @@ void usage(char* name)
     printf("-d --daemon      Run as daemon (background process) \n");
     printf("-v --verbose     Print server messages [default]\n");
     printf("-h --help        Print this usage guide - don't launch the program \n");
-    printf("-c --max-clients=K     The K amount of users that server is going to serve [default: 1]\n");
+    printf("-c --max-clients=K     K is the amount of users that server is going to serve [default: 10]\n");
 }
 
 struct option long_options[] =
