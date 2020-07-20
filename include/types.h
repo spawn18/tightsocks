@@ -14,7 +14,7 @@ typedef short port_t;
 extern const char SOCKS_VERSION;
 extern const char* SOCKS_PORT;
 extern const int BUFSIZE;
-extern int MAX_CLIENTS;
+extern unsigned int MAX_CLIENTS;
 extern unsigned int FLAGS;
 
 
@@ -75,7 +75,7 @@ typedef enum REPLY : unsigned char
     REPLY_ADDRESS_TYPE_NOT_SUPPORTED,
 } REPLY;
 
-typedef void (*request_p)(ADDRESS_TYPE, address_t, port_t );
+typedef void (*request_p)(ADDRESS_TYPE, size_t, address_t, port_t );
 
 typedef struct socks_request
 {

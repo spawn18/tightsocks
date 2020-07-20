@@ -21,6 +21,7 @@
 #include "include/socks.h"
 #include "include/message.h"
 #include "include/methods.h"
+#include "include/utils.h"
 
 
 /*
@@ -100,7 +101,7 @@ static void* process_client(void* arg)
     else if (request.command == COMMAND_TYPE_BIND)    request_func = &request_bind;
     else                                              request_func = &request_udp_associate;
 
-    request_func(request.address_type, request.address, request.port);
+    request_func(request.address_type, request.address_size, request.address, request.port);
 
     close(client);
     pthread_exit(0);
@@ -157,19 +158,19 @@ int main(int argc, char** argv)
             }
             case '4':
             {
-                FLAGS |= OPT_IPV4;
+                set_option(OPT_IPV4);
                 break;
             }
             case '6':
             {
-                FLAGS |= OPT_IPV6;
+                set_option(OPT_IPV6);
                 break;
             }
             case 'd':
             {
-                if(!(FLAGS & OPT_VERBOSE))
+                if(!is_option_set(OPT_VERBOSE))
                 {
-                    FLAGS |= OPT_DAEMON;
+                    set_option(OPT_DAEMON);
                     break;
                 }
                 else
@@ -180,9 +181,9 @@ int main(int argc, char** argv)
             }
             case 'v':
             {
-                if(!(FLAGS & OPT_DAEMON))
+                if(!is_option_set(OPT_DAEMON))
                 {
-                    FLAGS |= OPT_VERBOSE;
+                    set_option(OPT_VERBOSE);
                     break;
                 }
                 else

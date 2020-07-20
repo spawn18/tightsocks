@@ -3,6 +3,7 @@
 #include "../include/types.h"
 #include "../include/convert.h"
 #include "../include/message.h"
+#include "../include/utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -10,10 +11,6 @@
 #include <pthread.h>
 #include <errno.h>
 
-unsigned int is_option_set(OPTS opts)
-{
-    return FLAGS & opts;
-}
 
 method_t exchange_methods(fd_t client)
 {
@@ -60,115 +57,6 @@ method_t exchange_methods(fd_t client)
 }
 
 
-enum REPLY wait_for_request(fd_t client)
-{
-
-    /* Reply type of the destination host */
-    enum REPLY reply = REPLY_GENERAL_ERROR;
-
-    /* Address tyoe */
-    switch(request[3])
-    {
-        case ADDRTYPE_IPV4:
-        {
-            /* Get 4 byte IPv4-address and 2 byte port */
-            recvf(client, request+4, 6);
-
-            ss->ss_family = AF_INET;
-            memcpy(getaddrss(ss), request + 4, 4); // IPv4 Address
-            memcpy(getportss(ss), request + 8, 2); // Port
-
-            break;
-        }
-
-        case ADDRTYPE_IPV6:
-        {
-            /* Get 16 byte IPv6-address and 2 byte port */
-            recvf(client, request+4, 18);
-
-            ss->ss_family = AF_INET6;
-            memcpy(getaddrss(ss), request + 4, 16); // IPv6 Address
-            memcpy(getportss(ss), request + 20, 2); // Port
-
-            break;
-        }
-
-        case ADDRTYPE_DOMAINNAME:
-        {
-            /* Get length of the following domain name */
-            recvf(client, request+4, 1);
-
-            /* Receive domain name */
-            recvf(client, request+5, request[4]);
-
-            /* DNS resolution of the given doman */
-            dnslookup(request+5, request[4]);
-
-        }
-
-        default:
-            reply = REPLY_ADDRESS_TYPE_NOT_SUPPORTED;
-            goto exit;
-
-    }
-
-    /* Type of request */
-    switch(request[1])
-    {
-        case REQTYPE_CONNECT:
-        {
-            fd_t server_sock = socket(AF_INET, SOCK_STREAM, 0);
-            if(server_sock == -1)
-            {
-                if(FLAGS & OPT_VERBOSE)
-                    message(MSGTYPE_ERROR, "COULDN'T CREATE A SOCKET");
-                break;
-            }
-
-            if(connect( server_sock, (struct sockaddr*)&ss, sizeof( *((struct sockaddr*)&ss) ) ) == -1)
-            {
-                if(FLAGS & OPT_VERBOSE)
-                    message(MSGTYPE_ERROR, "COULDN'T ESTABLISH CONNECTION TO DESTINATION HOST");
-
-                switch(errno)
-                {
-                    case EPERM:
-                        reply = REPLY_CONNECTION_NOT_ALLOWED;
-                        break;
-                    case EAFNOSUPPORT:
-                        reply = REPLY_ADDRESS_TYPE_NOT_SUPPORTED;
-                        break;
-                    case ECONNREFUSED:
-                    case ETIMEDOUT:
-                        reply = REPLY_CONNECTION_REFUSED;
-                        break;
-                    case ENETUNREACH:
-                        reply = REPLY_NETWORK_UNREACHABLE;
-                        break;
-                }
-            }
-
-            reply = REPLY_SUCCEEDED;
-
-            break;
-        }
-        case REQTYPE_BIND:
-        {
-
-            break;
-        }
-        case REQTYPE_UDP_ASSOCIATE:
-        {
-
-            break;
-        }
-        default:
-            reply = REPLY_COMMAND_NOT_SUPPORTED;
-            break;
-    }
-
-    return
-}
 
 void socks_reply(fd_t client, enum REPLY reply, enum ADDRTYPE addrtype, const_address_t address, const_port_t port)
 {
@@ -202,50 +90,10 @@ void socks_reply(fd_t client, enum REPLY reply, enum ADDRTYPE addrtype, const_ad
 
 }
 
-inline index_t socks_get_port_index(const char* reply)
-{
-    index_t i = 0;
-    switch(reply[4])
-    {
-        case ADDRTYPE_IPV4:
-            i = 4;
-            break;
-        case ADDRTYPE_IPV6:
-            i = 16;
-            break;
-        case ADDRTYPE_DOMAINNAME:
-            i = reply[5] + 1;
-            break;
-    }
 
-    return i+4;
-}
 
-inline index_t socks_get_address_size(const char* reply)
-{
-    size_t i = 0;
-    switch(reply[4])
-    {
-        case ADDRTYPE_IPV4:
-            i = 4;
-            break;
-        case ADDRTYPE_IPV6:
-            i = 16;
-            break;
-        case ADDRTYPE_DOMAINNAME:
-            i = reply[5];
-            break;
-    }
 
-    return i;
-}
-
-void socks_set_port(char* reply,  port)
-{
-
-}
-
-void request_connect(ADDRESS_TYPE address_type, address_t address, port_t port)
+void request_connect(ADDRESS_TYPE address_type, size_t address_size, address_t address, port_t port)
 {
     fd_t server = socket(AF_INET, SOCK_STREAM, 0);
     if(server == -1)
@@ -257,9 +105,9 @@ void request_connect(ADDRESS_TYPE address_type, address_t address, port_t port)
     }
 
     struct sockaddr_storage ss;
-    fill_ss(&ss, address_type, address, port);
+    fill_ss(&ss, address_type, address_size, address, port);
 
-    REPLY reply;
+    REPLY reply = REPLY_SUCCEEDED;
     if(connect(server, (struct sockaddr*)&ss, sizeof(*((struct sockaddr*)&ss))) == -1)
     {
         if(is_option_set(OPT_VERBOSE))
@@ -285,9 +133,14 @@ void request_connect(ADDRESS_TYPE address_type, address_t address, port_t port)
         }
     }
 
-    reply = REPLY_SUCCEEDED;
-
-
+    /* TODO: Кто должен выполнять реплай?
+     * С одной стороны это просто реквест который выполняет сам реквест и не
+     * должен думать о реплае
+     * с другой стороны он один знает инфу о том как выполнился он и поэтому
+     * может сразу дать ответ. Реплай зависит от типа реквеста. Возвращать реплай от выполнения
+     * реквеста было бы глупо. Если что и стоило бы возвращать так это код ошибки
+     * Наверное, реплай являясь частью реквеста и уникален для каждого типа реквеста
+     * должен всё таки быть частью реквеста? */
 }
 
 void request_bind(ADDRESS_TYPE address_type, address_t address, port_t port)

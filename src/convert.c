@@ -23,27 +23,18 @@ void* getportss(struct sockaddr_storage* ss)
     return &(((struct sockaddr_in6*)&ss)->sin6_port);
 }
 
-void fill_ss(struct sockaddr_storage* ss, ADDRESS_TYPE address_type, address_t address, port_t port)
+void fill_ss(struct sockaddr_storage* ss, ADDRESS_TYPE address_type, size_t address_size, address_t address, port_t port)
 {
     char* tmp;
-    if(address_type == ADDRESS_TYPE_IPV4)
+    tmp = malloc(address_size + address_size-1);
+
+    strcpy(tmp, &address[0]);
+    for(int i = 1; i < address_size; i += (address_type == ADDRESS_TYPE_IPV4) ? 1 : 2)
     {
-        tmp = malloc(4 + 3);
-        strcpy(tmp, &address[0]);
-        for(int i = 1; i < 4; i++)
+        strcat(tmp, &address[i]);
+        if(i != address_size-1)
         {
-            strcat(tmp, &address[i]);
-            if(i != 3) strcat(tmp, (const char *) '.');
-        }
-    }
-    else
-    {
-        tmp = malloc(16 + 15);
-        strcpy(tmp, &address[0]);
-        for(int i = 1; i < 16; i += 2)
-        {
-            strcat(tmp, &address[i]);
-            if(i != 15) strcat(tmp, (const char *) ':');
+            strcat(tmp, (address_type == ADDRESS_TYPE_IPV4) ? (const char *) '.' : (const char*)':');
         }
     }
 

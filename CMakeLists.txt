@@ -11,6 +11,7 @@ add_executable(socks
         include/socks.h
         include/message.h
         include/methods.h
+        include/utils.h
         src/convert.c
         src/dnslookup.c
         src/io.c
@@ -18,4 +19,5 @@ add_executable(socks
         src/message.c
         src/methods.c
         src/types.c
+        src/utils.c
         main.c)
