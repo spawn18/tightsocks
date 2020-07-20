@@ -30,9 +30,9 @@ void method_userpass(fd_t client)
 
     /* Get password */
     char password[BUFSIZE/2];
-    recvf(client, password, buffer+2);
+    recvf(client, password, buffer[2]);
 
-    /* Veridy Username/Password via database and proceed */
+    /* Verify Username/Password via database and proceed */
 
 
 }

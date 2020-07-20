@@ -24,17 +24,6 @@
 #include "include/utils.h"
 
 
-/*
-void get_sockaddr(struct sockaddr_storage* client)
-{
-    char s[INET6_ADDRSTRLEN];
-
-    inet_ntop(client->ss_family, get_sockaddr_address(&(*client)), s, sizeof(s));
-    in_port_t port = ntohs(get_sockaddr_port(&(*client)));
-
-    printf("Got connection from ip %s and port %d \n\r", s, port);
-}
-*/
 
 /*
 static void message_loop(fd_t client, fd_t server)
@@ -84,24 +73,28 @@ static void message_loop(fd_t client, fd_t server)
  * @return doesn't return
  */
 static void* process_client(void* arg)
+
 {
     fd_t client = *(fd_t*)arg;
 
     /* Exchange method and get the chosen method */
-    method_t method = exchange_methods(client);
+    method_t method;
+    exchange_methods(client, &method);
 
     /* Method specific sub-negotiation */
-    if(method == METHODS_VAR_USERPASS) method_userpass(client);
+    if(method == METHODS_USERPASS) method_userpass(client);
 
     socks_request_t request;
-    socks_get_request(client, &request);
+    socks_get_request(client, request);
 
-    request_p request_func = NULL;
-    if      (request.command == COMMAND_TYPE_CONNECT) request_func = &request_connect;
-    else if (request.command == COMMAND_TYPE_BIND)    request_func = &request_bind;
-    else                                              request_func = &request_udp_associate;
+    socks_request_f request_func = NULL;
+    if      (request[1] == COMMAND_CONNECT) request_func = &request_connect;
+    else if (request[1] == COMMAND_BIND)    request_func = &request_bind;
+    else                                    request_func = &request_udp_associate;
 
-    request_func(request.address_type, request.address_size, request.address, request.port);
+    /*
+    request_func(&request[3]);
+
 
     close(client);
     pthread_exit(0);
@@ -135,8 +128,8 @@ int main(int argc, char** argv)
 {
     /* Used for help message, if user ever renames the executable
      * Since getopt changes args order and manipulates them we need to do a deep copy*/
-    char program_name[strlen(argv[0]) + 1];
-    memcpy(program_name, argv[0], strlen(argv[0]) + 1);
+    char program_name[strlen(argv[0])+1];
+    memcpy(program_name, argv[0], strlen(argv[0])+1);
 
     /* Returned character for getopt_long*/
     int c = 0;
@@ -194,7 +187,8 @@ int main(int argc, char** argv)
             }
             case 'c':
             {
-                FLAGS |= OPT_MAX_CLIENTS;
+                set_option(OPT_MAX_CLIENTS);
+
                 MAX_CLIENTS = strtol(optarg, NULL, 10);
                 if(MAX_CLIENTS == 0L || errno == ERANGE)
                 {
@@ -218,19 +212,19 @@ int main(int argc, char** argv)
     while(c != -1);
 
     /* We need to set standard arguments if there weren't specified to configure program */
-    if(!(FLAGS & OPT_VERBOSE) && !(FLAGS & OPT_DAEMON))
+    if(!is_option_set(OPT_VERBOSE) && !is_option_set(OPT_DAEMON))
     {
-        FLAGS |= OPT_VERBOSE;
+        set_option(OPT_VERBOSE);
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT OPTION --verbose");
     }
 
-    if(!(FLAGS & OPT_IPV4) && !(FLAGS & OPT_IPV6))
+    if(!is_option_set(OPT_IPV4) && !is_option_set(FLAGS & OPT_IPV6))
     {
-        FLAGS |= OPT_IPV4;
+        set_option(OPT_IPV4);
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT OPTION --ipv4");
     }
 
-    if(!(FLAGS & OPT_MAX_CLIENTS))
+    if(!is_option_set(OPT_MAX_CLIENTS))
     {
         message(MSGTYPE_WARNING, "ASSUMING DEFAULT ARGUMENT FOR OPTION --max-client=10 ");
     }
@@ -245,7 +239,7 @@ int main(int argc, char** argv)
     struct addrinfo *results, *p_res;
 
 
-    hints.ai_family = (FLAGS & OPT_IPV4) ? AF_INET : AF_INET6;
+    hints.ai_family = (is_option_set(OPT_IPV4)) ? AF_INET : AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
     hints.ai_flags = AI_NUMERICSERV | AI_ADDRCONFIG | AI_PASSIVE;
@@ -282,7 +276,7 @@ int main(int argc, char** argv)
     freeaddrinfo(results);
 
     /* If it doesnt work out - we terminate */
-    if(listen(listen_sock, MAX_CLIENTS) == 0)
+    if(listen(listen_sock, (int)MAX_CLIENTS) == 0)
     {
         message(MSGTYPE_OK, "LISTEN() SUCCEED");
     }
@@ -292,8 +286,6 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    /* For performance purposes there's only max amount of 10
-     * people being served. Just redefine if you need more */
     size_t total_clients = 0;
     while(total_clients < MAX_CLIENTS)
     {
@@ -303,7 +295,7 @@ int main(int argc, char** argv)
         /* Accept() requires us to have sockaddr struct to store info
          * about the connectee */
         struct sockaddr_storage ss;
-        socklen_t ss_size = sizeof(struct sockaddr_storage);
+        socklen_t ss_size = sizeof(*(struct sockaddr*)&ss);
 
         /* We accept the client */
         int client_sock = accept(listen_sock, (struct sockaddr *) &ss, &ss_size);
@@ -331,14 +323,13 @@ int main(int argc, char** argv)
         }
         else
         {
-            message(MSGTYPE_ERROR, "ACCEPT() FAILED. TERMINATING...");
-            return -1;
+            message(MSGTYPE_WARNING, "ACCEPT() FAILED");
+            continue;
         }
 
-        /* TODO: Если я правильно понял то вот с этой строчки кода у нас дальше айпи агностик идёт. Разберись */
         /* If we've connected to the client, then start a thread proccessing him there only */
         pthread_attr_init(&thread_attr);
-        if(pthread_create(&thread, &thread_attr, process_client, &client_sock) == -1) return -1;
+        if(pthread_create(&thread, &thread_attr, process_client, &client_sock) != 0) return EXIT_FAILURE;
         pthread_detach(thread);
 
         ++total_clients;

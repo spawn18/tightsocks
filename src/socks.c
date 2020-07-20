@@ -12,7 +12,7 @@
 #include <errno.h>
 
 
-method_t exchange_methods(fd_t client)
+method_t exchange_methods(fd_t client, method_t* method)
 {
     /* Buffer to read METHOD selection message (maximum 257 bytes)*/
     char buffer[BUFSIZE + 1];
@@ -27,7 +27,7 @@ method_t exchange_methods(fd_t client)
     if(recvf(client, buffer+2, buffer[1]) == -1) return -1;
 
     /* Variable for the method we choose, NOMETHOD by default */
-    unsigned char method = METHODS_VAR_NOMETHOD;
+    unsigned char met = METHODS_VAR_NOMETHOD;
 
     /* Loop over methods until we agree on one */
     for(index_t i = 2; i < buffer[METHODS_FIELD_NMETHODS]; ++i)
@@ -35,24 +35,24 @@ method_t exchange_methods(fd_t client)
         /* We prefer to proceed with no authentication */
         if(((unsigned char)buffer[i]) == METHODS_VAR_NOAUTH)
         {
-            method = METHODS_VAR_NOAUTH;
+            met = METHODS_VAR_NOAUTH;
             break;
         }
     }
 
     /* Send chosen method */
-    char choice[2] = {SOCKS_VERSION, method};
+    char choice[2] = {SOCKS_VERSION, met};
     sendf(client, choice, sizeof(choice));
 
     /* If we did not find any method we terminate */
-    if (method != METHODS_VAR_NOMETHOD)
+    if (met != METHODS_VAR_NOMETHOD)
     {
         message(MSGTYPE_ERROR, "CLIENT REJECTED: NO METHOD CONSENSUS");
         close(client);
         pthread_exit(0);
     }
 
-    return method;
+    *method = met;
 
 }
 
@@ -93,7 +93,7 @@ void socks_reply(fd_t client, enum REPLY reply, enum ADDRTYPE addrtype, const_ad
 
 
 
-void request_connect(ADDRESS_TYPE address_type, size_t address_size, address_t address, port_t port)
+void request_connect(socks_request_t request)
 {
     fd_t server = socket(AF_INET, SOCK_STREAM, 0);
     if(server == -1)
@@ -153,10 +153,11 @@ void request_udp_associate(ADDRERSS_TYPE address_type, address_t address, port_t
 
 }
 
-void socks_get_request(fd_t client, socks_request_t* sr)
+void socks_get_request(fd_t client, socks_request_t request)
 {
-    /* Buffer for client's request */
-    char request[BUFSIZE];
+    /* Allocate space for first 5 bytes */
+    request = malloc(sizeof(char)*5);
+    if(request == NULL) { /* ERROR */ }
 
     /* Receive first 5 bytes to determine the length of the rest */
     recvf(client, request, 5);
@@ -167,38 +168,22 @@ void socks_get_request(fd_t client, socks_request_t* sr)
     /* Read address and port accordingly */
     if (request[3] == ADDRESS_TYPE_DOMAINNAME)
     {
+        request = realloc(request, 5+request[4]+2);
         recvf(client, request+5, request[4]+2);
-
-        sr->address_size = request[4];
-        sr->address = malloc(sr->address_size);
-        memcpy(sr->address, (void*)request[5], sr->address_size);
-        sr->port = (((short)(request[4]+sr->address_size)) << 8) | (request[4]+sr->address_size+1);
     }
     else if (request[3] == ADDRESS_TYPE_IPV4)
     {
-        recvf(client, request+5, 3);
-
-        sr->address_size = 4;
-        sr->address = malloc(sr->address_size);
-        memcpy(sr->address, (void*)request[4], sr->address_size);
-        sr->port = (((short)(request[3]+4)) << 8) | (request[3]+5);
+        request = realloc(request, 5+4+2);
+        recvf(client, request+5, 3+2);
     }
     else if (request[3] == ADDRESS_TYPE_IPV6)
     {
-        recvf(client, request+5, 15);
-
-        sr->address_size = 16;
-        sr->address = malloc(sr->address_size);
-        memcpy(sr->address, (const void *)request[4], sr->address_size);
-        sr->port = (((short)(request[3]+16)) << 8) | (request[3]+17);
+        request = realloc(request, 5+15+2);
+        recvf(client, request+5, 15+2);
     }
     else
     {
         /* ERROR */
     }
 
-    /* Everything is read and now we fill up struct*/
-    sr->version = SOCKS_VERSION;
-    sr->command = request[1];
-    sr->address_type = request[3];
 }
