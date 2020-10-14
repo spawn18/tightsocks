@@ -1,25 +1,33 @@
 cmake_minimum_required(VERSION 3.16)
-project(socks C)
+project(Ace C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(socks
-        include/convert.h
-        include/dnslookup.h
-        include/io.h
-        include/types.h
-        include/socks.h
-        include/message.h
-        include/methods.h
-        include/utils.h
-        include/db.h
-        src/convert.c
-        src/dnslookup.c
-        src/io.c
-        src/socks.c
-        src/message.c
-        src/methods.c
-        src/types.c
-        src/utils.c
-        src/db.c
-        main.c)
+add_executable(Ace
+        network/io.h
+        protocol/request.h
+        system/log.h
+        protocol/methods/userpass.h
+        misc/utils.h
+        network/io.c
+        protocol/request.c
+        system/log.c
+        protocol/methods/userpass.c
+        misc/utils.c
+        main.c
+        system/args.c
+        system/args.h
+        system/options.c
+        system/options.h
+        system/server.c
+        system/server.h
+        protocol/commands.c
+        protocol/commands.h
+        misc/defs.h
+        protocol/method_exchange.c
+        protocol/method_exchange.h
+        protocol/reply.c
+        protocol/reply.h misc/chrono.c misc/chrono.h misc/wrappers.c misc/wrappers.h)
+
+target_link_libraries(Ace pthread)
+target_include_directories(Ace PUBLIC .)

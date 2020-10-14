@@ -1,6 +1,0 @@
-#ifndef SOCKS5_SERVER_DNSLOOKUP_H
-#define SOCKS5_SERVER_DNSLOOKUP_H
-
-
-
-#endif
