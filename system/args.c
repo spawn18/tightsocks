@@ -17,51 +17,57 @@
 
 
 struct option long_options[] = {
-        {"ipv4", 0, 0, '4'},
-        {"ipv6", 0, 0, '6'},
-        {"daemon", 0, 0, 'd'},
-        {"log", 0, 0, 'l'},
-        {"help", 0, 0, 'h'},
+        {"ip4", 0, 0, '4'},
+        {"ip6", 0, 0, '6'},
+        {"port", 1, 0, 'p'},
         {"max-connections", 1, 0, 'c'},
-        {"method", 1, 0, 'm'}
+        {"method", 1, 0, 'm'},
+        {"help", 0, 0, 'h'},
 };
 
 void handle_args(int argc, char** argv)
 {
-    char programName[strlen(argv[0]) + 1];
-    strcpy(programName, argv[0]);
+    char name[strlen(argv[0]) + 1];
+    strcpy(name, argv[0]);
 
     // Loop over options
     int opt_char = 0;
     do
     {
-        opt_char = getopt_long(argc, argv, "46dlhc:m:", long_options, NULL);
+        opt_char = getopt_long(argc, argv, "46p:c:m:h", long_options, NULL);
 
         switch(opt_char)
         {
             case 'h':
             {
-                usage(programName);
+                usage(name);
                 exit(0);
             }
             case '4':
             {
-                set_opt(OPT_IPV4);
+                set_opt(OPT_IP4);
                 break;
             }
             case '6':
             {
-                set_opt(OPT_IPV6);
+                set_opt(OPT_IP6);
                 break;
             }
-            case 'd':
+            case 'p':
             {
-                set_opt(OPT_DAEMON);
-                break;
-            }
-            case 'l':
-            {
-                set_opt(OPT_LOG);
+                set_opt(OPT_PORT);
+
+                long tmp = strtol(optarg, NULL, 10);
+                if(0 < tmp || tmp < 65536 || errno == ERANGE)
+                {
+                    fprintf(stderr, "Error: incorrect value for -p/--port");
+                    usage(name);
+
+                    exit(-1);
+                }
+
+                PORT = (short)tmp;
+
                 break;
             }
             case 'c':
@@ -69,9 +75,11 @@ void handle_args(int argc, char** argv)
                 set_opt(OPT_MAX_CONNECTIONS);
 
                 MAX_CONNECTIONS = (int)strtol(optarg, NULL, 10);
-                if(MAX_CONNECTIONS == 0L || errno == ERANGE)
+                if(MAX_CONNECTIONS <= 0 ||  errno == ERANGE)
                 {
-                    fprintf(stderr, "Error: value for -c/--max-connections cannot be higher than 1024.");
+                    fprintf(stderr, "Error: incorrect value for -c/--max-connections");
+                    usage(name);
+
                     exit(-1);
                 }
 
@@ -83,12 +91,23 @@ void handle_args(int argc, char** argv)
 
                 if(strcmp(optarg, "userpass") == 0)
                 {
-                    PREFER_METHOD = METHOD_USERPASS;
+                    METHOD_PREFERED = METHOD_USERPASS;
                     break;
                 }
+                else if(strcmp(optarg, "noauth") == 0)
+                {
+                    METHOD_PREFERED = METHOD_NOAUTH;
+                    break;
+                }
+                else
+                {
+                    fprintf(stderr,"Error: incorrect value for -m/--method");
+                    usage(name);
 
-                fprintf(stderr, "Error: incorrect value for -m/--method");
-                exit(-1);
+                    exit(-1);
+                }
+
+                break;
             }
             case '?':
             {
@@ -98,37 +117,8 @@ void handle_args(int argc, char** argv)
     }
     while(opt_char != -1);
 
-    // Set default options
-    if(!is_opt_set(OPT_IPV4) && !is_opt_set(OPT_IPV6))
-        set_opt(OPT_IPV4);
-
-    // Print messages if not daemon
-    if(!is_opt_set(OPT_DAEMON))
-    {
-       if(is_opt_set(OPT_IPV4))
-       {
-           printf("IPv4 is enabled");
-       }
-       else if(is_opt_set(OPT_IPV6))
-       {
-           printf("IPv6 is enabled");
-       }
-       else if(is_opt_set(OPT_LOG))
-       {
-           printf("Logging is enabled");
-       }
-       else if(is_opt_set(OPT_MAX_CONNECTIONS))
-       {
-           printf("Max connections limit is set to %i", MAX_CONNECTIONS);
-       }
-       else if(is_opt_set(OPT_METHOD))
-       {
-           if(PREFER_METHOD == METHOD_USERPASS)
-           {
-               printf("SOCKS method set to username/password");
-           }
-       }
-    }
+    if(!is_opt_set(OPT_IP4) && !is_opt_set(OPT_IP6))
+        set_opt(OPT_IP4);
 }
 
 
@@ -136,17 +126,15 @@ void usage(char* progName)
 {
     printf("Usage: %s [ -4 | -6 {-v | -d} -u (-c=K) ]  \n"
            "Usage: %s -h \n\n"
-           "-4 --ipv4               Accept ipv4 clients [default]\n"
-           "-6 --ipv6               Accept ipv6 clients (not recommended, see below)\n"
-           "-d --daemon             Run as daemon (background process) \n"
-           "-l --log                Make error logs in auto generated files\n"
-           "-h --help               Print this usage guide - don't launch the program \n"
-           "-c --max-connections=K  K is the maximum amount of connections that the \nserver is going to handle at a single moment of time  [default: 10]\n"
-           "-m --method=M           Prefer method M when possible. \n List of valid names is given below\n"
+           "-h --help               Print this usage guide \n"
+           "-4 --ip4                Accept ipv4 clients [default]\n"
+           "-6 --ip6                Accept ipv6 clients \n"
+           "-p= --port=             Set server port manually. Range 1024-65535 [default: 1080]\n"
+           "-c= --max-connections=  Connection limit for server  [default: 1024]\n"
+           "-m= --method=           Authentication method used in SOCKS protocol [default: noauth]\n"
            "Valid method names:\n* noauth - no authentication\n* userpass - username and password authentication\n"
-           "\n If you're using \"userpass\" method you'll need to have a valid user first"
-           "\n To add one, append the following line to \"users.txt\" file in \"users\" folder like so\n\n"
-           "{username:admin,password:admin}\n\n"
-           "To add multiple users just do the same on the newline. New user - new line", progName, progName);
+           "\n For\"userpass\" method there must be a valid user present in users.txt file."
+           "\n One line - one user. Each line contains login and password, separated by whitespace. Character limit - 255"
+           "Example:user password\n\n", progName, progName);
 }
 

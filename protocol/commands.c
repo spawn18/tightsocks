@@ -54,6 +54,7 @@ void SOCKS_connect(fd_t client, const char atyp, const char* host, const char* p
         {
             memcpy(&(((struct sockaddr_in*)&addr)->sin_addr.s_addr), host, 4);
             memcpy(&((struct sockaddr_in*)&addr)->sin_port, port, 2);
+
             ((struct sockaddr_in*)&addr)->sin_addr.s_addr = htonl((((struct sockaddr_in*)&addr)->sin_addr.s_addr));
         }
         else

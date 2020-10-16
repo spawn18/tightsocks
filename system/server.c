@@ -24,44 +24,16 @@
 #include <errno.h>
 
 
-
-static size_t totalConnections = 0;
-static pthread_mutex_t totalConnections_mutex;
-
-size_t get_conns()
-{
-    return totalConnections;
-}
-
-void inc_conns()
-{
-    pthread_mutex_lock(&totalConnections_mutex);
-    ++totalConnections;
-    pthread_mutex_unlock(&totalConnections_mutex);
-}
-
-void dec_conns()
-{
-    pthread_mutex_lock(&totalConnections_mutex);
-    --totalConnections;
-    pthread_mutex_unlock(&totalConnections_mutex);
-}
+static int totalConns = 0;
+static pthread_mutex_t mut;
 
 
-/**
- * @brief Used to serve a single client
- * 
- * Here goes the standard procedure for every individual client
- * 
- * @param arg Socket descriptor that is connected and that describes a client
- * 
- * @return Nothing because the method is always used in detach state.
- */
+
 static void* handle_client(void* arg)
 {
     fd_t client = *(fd_t*)arg;
 
-    if(SOCKS_exchange_methods(client, METHOD_PREFERED))
+    if(SOCKS_exchange_methods(client))
     {
         bool methodHandled = FALSE;
         switch(METHOD_PREFERED)
@@ -93,54 +65,64 @@ static void* handle_client(void* arg)
     }
 
     close(client);
-    dec_conns();
+
+    pthread_mutex_lock(&mut);
+    --totalConns;
+    pthread_mutex_unlock(&mut);
+
     pthread_exit(0);
 }
 
 void serve()
 {
-    if(is_opt_set(OPT_LOG) && !log_open())
+    fd_t server = socket((is_opt_set(OPT_IP4)) ? AF_INET : AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+
+    if(server != -1)
     {
-        MSG("Can't open log file");
-        exit(-1);
-    }
+        printf("Created socket");
 
-    char* host = NULL;
-    char* port = "1080";
-    int family     = AF_INET;
-    int socketType = SOCK_STREAM;
-    int protocol   = 0;
-    int flags = AI_PASSIVE;
+        struct sockaddr_storage addr;
 
-    struct addrinfo *results = NULL;
-
-    if(find_sockets(host, port, family, socketType, protocol, flags, results))
-    {
-        MSG("Found sockets to bind");
-
-        fd_t server;
-        if(bind_socket(&server, results))
+        if(is_opt_set(OPT_IP4))
         {
-            MSG("Bound port");
+            addr.ss_family = AF_INET;
+            ((struct sockaddr_in*)&addr)->sin_addr.s_addr = htonl(INADDR_ANY);
+            ((struct sockaddr_in*)&addr)->sin_port = htons(PORT);
+        }
+        else
+        {
+            addr.ss_family = AF_INET6;
+            ((struct sockaddr_in6*)&addr)->sin6_addr = in6addr_any;
+            ((struct sockaddr_in6*)&addr)->sin6_port = htons(PORT);
+        }
 
-            if(listen(server, MAX_CONNECTIONS) == 0)
+        if(bind(server, (struct sockaddr*)&addr, sizeof(addr)) != -1)
+        {
+            printf("Bound address");
+
+            if(listen(server, MAX_CONNECTIONS))
             {
-                MSG("Listening for connections \n Server has started. Let's go!");
+                printf("Listening...");
 
                 while(1)
                 {
-                    if(get_conns() > MAX_CONNECTIONS)
+                    if (totalConns > MAX_CONNECTIONS)
                     {
                         continue;
                     }
 
                     int client = accept(server, NULL, NULL);
 
-                    if(client != -1) inc_conns();
+                    if (client != -1)
+                    {
+                        pthread_mutex_lock(&mut);
+                        ++totalConns;
+                        pthread_mutex_unlock(&mut);
+                    }
                     else continue;
 
                     pthread_t thread = 0;
-                    if(pthread_create(&thread, NULL, handle_client, &client) == 0)
+                    if (pthread_create(&thread, NULL, handle_client, &client) == 0)
                     {
                         pthread_detach(thread);
                     }
@@ -148,4 +130,5 @@ void serve()
             }
         }
     }
+    else exit(0);
 }

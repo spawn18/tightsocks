@@ -15,8 +15,8 @@ typedef enum CMD : char
 
 
 
-void SOCKS_bind(fd_t client, const char addrType, const char* host, const char* port);
-void SOCKS_connect(fd_t client, const char addrType, const char* host, const char* port);
-void SOCKS_udp_associate(fd_t client, const char addrType, const char* host, const char* port);
+void SOCKS_bind(fd_t client, char addrType, const char* host, const char* port);
+void SOCKS_connect(fd_t client, char addrType, const char* host, const char* port);
+void SOCKS_udp_associate(fd_t client, char addrType, const char* host, const char* port);
 
 #endif 

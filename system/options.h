@@ -5,20 +5,16 @@
 
 typedef enum OPTIONS
 {
-    OPT_ENUM_BEGIN = 0,
-
-    OPT_IPV6,
-    OPT_IPV4,
-    OPT_LOG,
-    OPT_DAEMON,
+    OPT_IP6,
+    OPT_IP4,
+    OPT_PORT,
     OPT_MAX_CONNECTIONS,
     OPT_METHOD,
-
-    OPT_ENUM_END
 } option_t;
 
 extern int MAX_CONNECTIONS;
 extern int METHOD_PREFERED;
+extern unsigned short PORT;
 
 bool is_opt_set(option_t);
 void set_opt(option_t);
