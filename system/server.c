@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <poll.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -22,6 +23,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <fcntl.h>
 
 
 static int totalConns = 0;
@@ -73,62 +75,116 @@ static void* handle_client(void* arg)
     pthread_exit(0);
 }
 
+void* accept_conns(void* s)
+{
+    fd_t server = *(fd_t*)&s;
+
+
+}
+
 void serve()
 {
-    fd_t server = socket((is_opt_set(OPT_IP4)) ? AF_INET : AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+    struct pollfd fds[2];
+    fd_t server4;
+    fd_t server6;
 
-    if(server != -1)
+    if(is_opt_set(OPT_IP4))
     {
-        printf("Created socket");
+        server4 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-        struct sockaddr_storage addr;
+        if(server4 == -1)
+        {
+            exit(-1);
+        }
+
+        struct sockaddr_in addr4;
+        addr4.sin_family = AF_INET;
+        addr4.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr4.sin_port = htons(PORT);
+
+        if(bind(server4, (struct sockaddr*)&addr4, sizeof(addr4)) == 1)
+        {
+            exit(-1);
+        }
+
+        if(listen(server4, MAX_CONNECTIONS) != 0)
+        {
+            exit(-1);
+        }
+
+
+        int flags4 = fcntl(server4, F_GETFL, 0);
+        fcntl(server4, F_SETFL, flags4 | O_NONBLOCK);
+    }
+
+    if(is_opt_set(OPT_IP6))
+    {
+        server6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+
+        if(server6 == -1)
+        {
+            exit(-1);
+        }
+
+        struct sockaddr_in6 addr6;
+        addr6.sin6_family = AF_INET6;
+        addr6.sin6_addr = in6addr_any;
+        addr6.sin6_port = htons(PORT);
+
+        if(bind(server6, (struct sockaddr*)&addr6, sizeof(addr6)) == -1)
+        {
+            exit(-1);
+        }
+
+        if(listen(server6, MAX_CONNECTIONS) != 0)
+        {
+            exit(-1);
+        }
+
+
+        int flags6 = fcntl(server6, F_GETFL, 0);
+        fcntl(server6, F_SETFL, flags6 | O_NONBLOCK);
+    }
+
+
+    while(1)
+    {
+        if (totalConns > MAX_CONNECTIONS)
+        {
+            continue;
+        }
 
         if(is_opt_set(OPT_IP4))
         {
-            addr.ss_family = AF_INET;
-            ((struct sockaddr_in*)&addr)->sin_addr.s_addr = htonl(INADDR_ANY);
-            ((struct sockaddr_in*)&addr)->sin_port = htons(PORT);
-        }
-        else
-        {
-            addr.ss_family = AF_INET6;
-            ((struct sockaddr_in6*)&addr)->sin6_addr = in6addr_any;
-            ((struct sockaddr_in6*)&addr)->sin6_port = htons(PORT);
-        }
-
-        if(bind(server, (struct sockaddr*)&addr, sizeof(addr)) != -1)
-        {
-            printf("Bound address");
-
-            if(listen(server, MAX_CONNECTIONS))
+            int client = accept(server4, NULL, NULL);
+            if((client != EAGAIN || client != EWOULDBLOCK) && client != -1)
             {
-                printf("Listening...");
+                pthread_mutex_lock(&mut);
+                ++totalConns;
+                pthread_mutex_unlock(&mut);
 
-                while(1)
+                pthread_t thread = 0;
+                if (pthread_create(&thread, NULL, handle_client, &client) == 0)
                 {
-                    if (totalConns > MAX_CONNECTIONS)
-                    {
-                        continue;
-                    }
+                    pthread_detach(thread);
+                }
+            }
+        }
+        if(is_opt_set(OPT_IP6))
+        {
+            int client = accept(server6, NULL, NULL);
+            if((client != EAGAIN || client != EWOULDBLOCK) && client != -1)
+            {
+                pthread_mutex_lock(&mut);
+                ++totalConns;
+                pthread_mutex_unlock(&mut);
 
-                    int client = accept(server, NULL, NULL);
-
-                    if (client != -1)
-                    {
-                        pthread_mutex_lock(&mut);
-                        ++totalConns;
-                        pthread_mutex_unlock(&mut);
-                    }
-                    else continue;
-
-                    pthread_t thread = 0;
-                    if (pthread_create(&thread, NULL, handle_client, &client) == 0)
-                    {
-                        pthread_detach(thread);
-                    }
+                pthread_t thread = 0;
+                if (pthread_create(&thread, NULL, handle_client, &client) == 0)
+                {
+                    pthread_detach(thread);
                 }
             }
         }
     }
-    else exit(0);
 }
