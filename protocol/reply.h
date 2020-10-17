@@ -13,8 +13,8 @@ enum REP
 
 
 bool SOCKS_reply(fd_t client,
-                 const char replyType,
-                 const char addrType,
+                 char replyType,
+                 char addrType,
                  const char* host,
                  const char* port);
 

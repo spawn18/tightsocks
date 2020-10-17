@@ -15,7 +15,7 @@ void serve();
 static void* handle_client(void* client);
 
 /* Execute method-specific function depending on method */
-static bool handle_method(fd_t client, method_t method);
+static bool handle_method(fd_t client);
 
 size_t get_total_connnections();
 void inc_total_connections();

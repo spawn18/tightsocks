@@ -1,10 +1,7 @@
 #include "commands.h"
 #include "system/options.h"
-#include "system/log.h"
-#include "misc/utils.h"
 #include "protocol/reply.h"
 #include "misc/defs.h"
-#include "misc/wrappers.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -80,26 +77,27 @@ void SOCKS_connect(fd_t client, const char atyp, const char* host, const char* p
         struct sockaddr_storage addr;
         socklen_t addrLen = sizeof(addr);
 
-        getsockname(dest, (struct sockaddr*)&addr, &addrLen);
-
-        char repAtyp;
-        char repHost[HOST_LEN + 1];
-        char repPort[PORT_LEN + 1];
-
-        if(addr.ss_family == AF_INET)
+        if(getsockname(dest, (struct sockaddr*)&addr, &addrLen) == -1)
         {
-            repAtyp = ATYP_IPV4;
-            memcpy(repHost, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
-            memcpy(repPort, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
-        }
-        else
-        {
-            repAtyp = ATYP_IPV6;
-            memcpy(repHost, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
-            memcpy(repPort, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
-        }
+            char repAtyp;
+            char repHost[HOST_LEN + 1];
+            char repPort[PORT_LEN + 1];
 
-        SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
+            if(addr.ss_family == AF_INET)
+            {
+                repAtyp = ATYP_IPV4;
+                memcpy(repHost, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
+                memcpy(repPort, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
+            }
+            else
+            {
+                repAtyp = ATYP_IPV6;
+                memcpy(repHost, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
+                memcpy(repPort, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
+            }
+
+            SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
+        }
     }
     else
     {
@@ -107,13 +105,13 @@ void SOCKS_connect(fd_t client, const char atyp, const char* host, const char* p
     }
 }
 
-bool SOCKS_bind(fd_t client, const char* host, const char* port)
+void SOCKS_bind(fd_t client, char atyp, const char* host, const char* port)
 {
 
 }
 
 
-bool SOCKS_udp_associate(fd_t client, const char* host, const char* port)
+void SOCKS_udp_associate(fd_t client, char atyp, const char* host, const char* port)
 {
     /* PASS */
 }

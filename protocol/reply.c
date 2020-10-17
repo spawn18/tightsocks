@@ -7,9 +7,9 @@
 #define REP_LEN 261
 
 
-bool socks_reply(fd_t client,
-                const char rtyp,
-                const char atyp,
+bool SOCKS_reply(fd_t client,
+                char rtyp,
+                char atyp,
                 const char* host,
                 const char* port)
 {

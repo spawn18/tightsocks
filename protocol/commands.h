@@ -5,7 +5,7 @@
 #include "request.h"
 
 
-typedef enum CMD : char
+typedef enum CMD
 {
     CMD_CONNECT = 1,
     CMD_BIND,
@@ -15,8 +15,8 @@ typedef enum CMD : char
 
 
 
-void SOCKS_bind(fd_t client, char addrType, const char* host, const char* port);
-void SOCKS_connect(fd_t client, char addrType, const char* host, const char* port);
-void SOCKS_udp_associate(fd_t client, char addrType, const char* host, const char* port);
+void SOCKS_bind(fd_t, char, const char*, const char*);
+void SOCKS_connect(fd_t, char, const char*, const char*);
+void SOCKS_udp_associate(fd_t, char, const char*, const char*);
 
 #endif 

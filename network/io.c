@@ -1,6 +1,5 @@
 
 #include "io.h"
-#include "misc/utils.h"
 
 #include <stddef.h>
 #include <sys/socket.h>

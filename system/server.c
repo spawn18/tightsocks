@@ -2,11 +2,8 @@
 #include "server.h"
 
 #include "misc/defs.h"
-#include "misc/utils.h"
 #include "protocol/commands.h"
 #include "protocol/request.h"
-#include "system/log.h"
-#include "misc/wrappers.h"
 #include "system/options.h"
 
 #include <stdio.h>
@@ -30,8 +27,7 @@ static int totalConns = 0;
 static pthread_mutex_t mut;
 
 
-
-static void* handle_client(void* arg)
+void* handle_client(void* arg)
 {
     fd_t client = *(fd_t*)arg;
 
@@ -75,16 +71,9 @@ static void* handle_client(void* arg)
     pthread_exit(0);
 }
 
-void* accept_conns(void* s)
-{
-    fd_t server = *(fd_t*)&s;
-
-
-}
 
 void serve()
 {
-    struct pollfd fds[2];
     fd_t server4;
     fd_t server6;
 
@@ -166,7 +155,10 @@ void serve()
                 pthread_t thread = 0;
                 if (pthread_create(&thread, NULL, handle_client, &client) == 0)
                 {
-                    pthread_detach(thread);
+                    if(pthread_detach(thread) != 0)
+                    {
+                        printf("hmmm");
+                    }
                 }
             }
         }

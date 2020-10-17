@@ -1,6 +1,5 @@
 
 #include "network/io.h"
-#include "system/log.h"
 #include "system/options.h"
 
 #include <unistd.h>

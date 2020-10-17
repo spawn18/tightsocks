@@ -1,7 +1,6 @@
 #include "method_exchange.h"
 #include "network/io.h"
 #include "request.h"
-#include "system/log.h"
 #include "system/options.h"
 
 

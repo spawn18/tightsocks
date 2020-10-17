@@ -2,7 +2,6 @@
 #include "args.h"
 
 #include "protocol/method_exchange.h"
-#include "system/log.h"
 #include "options.h"
 
 #include <string.h>
@@ -58,9 +57,9 @@ void handle_args(int argc, char** argv)
                 set_opt(OPT_PORT);
 
                 long tmp = strtol(optarg, NULL, 10);
-                if(0 < tmp || tmp < 65536 || errno == ERANGE)
+                if(tmp < 0 || 65535 < tmp || errno == ERANGE)
                 {
-                    fprintf(stderr, "Error: incorrect value for -p/--port");
+                    fprintf(stderr, "Error: incorrect value for -p/--port\n\n");
                     usage(name);
 
                     exit(-1);
@@ -77,7 +76,7 @@ void handle_args(int argc, char** argv)
                 MAX_CONNECTIONS = (int)strtol(optarg, NULL, 10);
                 if(MAX_CONNECTIONS <= 0 ||  errno == ERANGE)
                 {
-                    fprintf(stderr, "Error: incorrect value for -c/--max-connections");
+                    fprintf(stderr, "Error: incorrect value for -c/--max-connections\n\n");
                     usage(name);
 
                     exit(-1);
@@ -101,7 +100,7 @@ void handle_args(int argc, char** argv)
                 }
                 else
                 {
-                    fprintf(stderr,"Error: incorrect value for -m/--method");
+                    fprintf(stderr,"Error: incorrect value for -m/--method\n\n");
                     usage(name);
 
                     exit(-1);
@@ -133,7 +132,7 @@ void usage(char* progName)
            "-c= --max-connections=  Connection limit for server  [default: 1024]\n"
            "-m= --method=           Authentication method used in SOCKS protocol [default: noauth]\n"
            "Valid method names:\n* noauth - no authentication\n* userpass - username and password authentication\n"
-           "\n For\"userpass\" method there must be a valid user present in users.txt file."
+           "\n For \"userpass\" method there must be a valid user present in users.txt file."
            "\n One line - one user. Each line contains login and password, separated by whitespace. Character limit - 255"
            "Example:user password\n\n", progName, progName);
 }

@@ -1,9 +1,7 @@
 #include "request.h"
 
-#include "misc/utils.h"
 #include "protocol/methods/userpass.h"
 #include "network/io.h"
-#include "system/log.h"
 #include "protocol/commands.h"
 #include "system/options.h"
 #include "reply.h"
