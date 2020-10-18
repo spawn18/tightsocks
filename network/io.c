@@ -6,57 +6,41 @@
 #include <poll.h>
 #include <unistd.h>
 
-/**
- * @brief send() wrapper that guarantees delivery (because send can fail sometimes)
- *
- * @param recvr Socket to write to
- * @param message Buffer to send
- * @param len Buffer size
- *
- * @return TRUE - success, FALSE - fail
- */
-bool send_all(fd_t recvr, const char* msg, size_t len)
+
+bool send_all(fd_t s, const char* buf, size_t len)
 {
-    const char *p_msg = &msg[0];
-    size_t msgLen = len;
+    const char *p_buf = &buf[0];
 
-    while(msgLen > 0)
+    while(len > 0)
     {
-        int bytesSent = send(recvr, p_msg, msgLen, 0);
+        int b = send(s, p_buf, len, 0);
+        if(b == -1) return FALSE;
 
-        if(bytesSent == -1) return FALSE;
-
-        p_msg += bytesSent;
-        msgLen -= bytesSent;
+        p_buf += b;
+        len -= b;
     }
 
     return TRUE;
 }
 
 
-/**
- * Recv() wrapper that guarantees read (read() can read less bytes than advertised)
- *
- * @param sender Socket to read from
- * @param buf Buffer to write to
- * @param len Buffer size
- *
- * @return TRUE - success, FALSE - fail
- */
-bool recv_all(fd_t sender, char* buf, size_t len)
+bool is_closed(fd_t s)
 {
-    char *p_msg = &buf[0];
-    size_t bufLen = len;
 
-    while(bufLen > 0)
+}
+
+bool recv_all(fd_t s, char* buf, size_t len)
+{
+    char *p_buf = &buf[0];
+
+    while(len > 0)
     {
-        int bytesRecvd = recv(sender, (void*)p_msg, bufLen, 0);
+        int b = recv(s, (void*)p_buf, len, 0);
+        if(b == 0) return FALSE;
+        if(b == -1) return FALSE;
 
-        if(bytesRecvd == 0) return FALSE;
-        if(bytesRecvd == -1) return -1;
-
-        p_msg += bytesRecvd;
-        bufLen -= bytesRecvd;
+        p_buf += b;
+        len -= b;
     }
     return TRUE;
 }

@@ -11,7 +11,7 @@ bool SOCKS_exchange_methods(fd_t client)
 
     if(recv_all(client, methods, 2))
     {
-        if((methods[0] != SOCKS_VER) && (methods[1] != 0))
+        if(methods[0] == SOCKS_VER && methods[1] != 0)
         {
             if(recv_all(client, methods+2, methods[1]))
             {
