@@ -9,32 +9,28 @@ bool SOCKS_exchange_methods(fd_t client)
 {
     char methods[METHODS_LEN + 1];
 
-    if(recv_all(client, methods, 2))
+    if(recv_all(client, methods, 2) > 0)
     {
         if(methods[0] == SOCKS_VER && methods[1] != 0)
         {
-            if(recv_all(client, methods+2, methods[1]))
+            if(recv_all(client, methods+2, methods[1]) > 0)
             {
-                char met = METHOD_NOMETHOD;
+                met_t m = METHOD_NOMETHOD;
 
-                for (int i = 2; i < methods[1]; i++)
+                for (int i = 0; i < methods[1]; i++)
                 {
-                    if (methods[i] == METHOD_PREFERED)
+                    if (methods[2+i] == METHOD_PREFERED)
                     {
-                        met = METHOD_PREFERED;
+                        m = METHOD_PREFERED;
                         break;
                     }
                 }
 
-                if(met == METHOD_NOMETHOD)
-                {
-                   return FALSE;
-                }
-
-                char rep[2] = {SOCKS_VER, met};
+                char rep[2] = {SOCKS_VER, (char)m};
                 send_all(client, rep, 2);
 
-                return TRUE;
+                if(m != METHOD_NOMETHOD) return TRUE;
+                else return FALSE;
             }
         }
     }

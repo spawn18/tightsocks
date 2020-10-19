@@ -15,6 +15,36 @@ typedef int bool;
 #define HOST_LEN 255
 #define PORT_LEN 5
 
+#define REQ_LEN 261
 
+typedef enum CMD
+{
+    CMD_CONNECT = 1,
+    CMD_BIND,
+    CMD_UDP_ASSOCIATE,
+
+} cmd_t;
+
+typedef enum METHODS
+{
+    METHOD_NOAUTH = 0,
+    METHOD_GSSAPI,
+    METHOD_USERPASS ,
+    METHOD_NOMETHOD = 0xFF,
+} met_t;
+
+
+typedef enum REP
+{
+    REP_SUCCEEDED = 0,
+    REP_GENERAL_ERROR,
+} rep_t;
+
+typedef enum ATYP
+{
+    ATYP_IPV4 = 1,
+    ATYP_DOMAINNAME = 3,
+    ATYP_IPV6,
+} atyp_t;
 
 #endif 

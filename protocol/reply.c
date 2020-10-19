@@ -1,5 +1,4 @@
 #include "reply.h"
-#include "request.h"
 #include "network/io.h"
 
 #include <string.h>
@@ -7,11 +6,7 @@
 #define REP_LEN 261
 
 
-bool SOCKS_reply(fd_t client,
-                char rtyp,
-                char atyp,
-                const char* host,
-                const char* port)
+bool SOCKS_reply(fd_t client, rep_t rtyp, atyp_t atyp, const char* host, const char* port)
 {
     char rep[REP_LEN + 1];
     rep[4] = '\0';

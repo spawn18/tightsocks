@@ -11,7 +11,8 @@
 #include <errno.h>
 
 
-void SOCKS_connect(fd_t client, const char atyp, const char* host, const char* port)
+
+void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
 {
     fd_t dest;
 
@@ -105,13 +106,13 @@ void SOCKS_connect(fd_t client, const char atyp, const char* host, const char* p
     }
 }
 
-void SOCKS_bind(fd_t client, char atyp, const char* host, const char* port)
+void SOCKS_bind(fd_t client, atyp_t atyp, const char* host, const char* port)
 {
 
 }
 
 
-void SOCKS_udp_associate(fd_t client, char atyp, const char* host, const char* port)
+void SOCKS_udp_associate(fd_t client, atyp_t atyp, const char* host, const char* port)
 {
-    /* PASS */
+
 }
