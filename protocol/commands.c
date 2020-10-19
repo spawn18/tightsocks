@@ -15,8 +15,10 @@
 void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
 {
     fd_t dest;
-
     bool done = FALSE;
+
+    rep_t reply = REP_GENERAL_FAILURE;
+
     if(atyp == ATYP_DOMAINNAME)
     {
         struct addrinfo gaiInfo;
@@ -35,9 +37,25 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
             for(p_res = res; p_res != NULL; p_res = p_res->ai_next)
             {
                 dest = socket(p_res->ai_family, p_res->ai_socktype, p_res->ai_protocol);
-                if(dest == -1) continue;
 
-                if(connect(dest, p_res->ai_addr, p_res->ai_addrlen) == 0) done = TRUE;
+                if(dest == -1)
+                {
+                    reply = REP_GENERAL_FAILURE;
+                    continue;
+                }
+
+                if(connect(dest, p_res->ai_addr, p_res->ai_addrlen) == 0)
+                {
+                    done = TRUE;
+                    break;
+                }
+                else
+                {
+                    if(errno == EHOSTUNREACH) reply = REP_HOST_UNREACHABLE;
+                    else if(errno == ENETUNREACH) reply = REP_NETWORK_UNREACHABLE;
+                    else if(errno == ECONNREFUSED) reply = REP_CONNECTION_REFUSED;
+                }
+
                 close(dest);
             }
 
@@ -50,13 +68,13 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
 
         if(atyp == ATYP_IPV4)
         {
+            addr.ss_family = AF_INET;
             memcpy(&(((struct sockaddr_in*)&addr)->sin_addr.s_addr), host, 4);
             memcpy(&((struct sockaddr_in*)&addr)->sin_port, port, 2);
-
-            ((struct sockaddr_in*)&addr)->sin_addr.s_addr = htonl((((struct sockaddr_in*)&addr)->sin_addr.s_addr));
         }
         else
         {
+            addr.ss_family = AF_INET6;
             memcpy(&(((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr), host, 4);
             memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, port, 2);
 
@@ -69,6 +87,12 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
             {
                 done = TRUE;
             }
+            else
+            {
+                if(errno == EHOSTUNREACH) reply = REP_HOST_UNREACHABLE;
+                else if(errno == ENETUNREACH) reply = REP_NETWORK_UNREACHABLE;
+                else if(errno == ECONNREFUSED) reply = REP_CONNECTION_REFUSED;
+            }
         }
     }
 
@@ -78,31 +102,30 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
         struct sockaddr_storage addr;
         socklen_t addrLen = sizeof(addr);
 
-        if(getsockname(dest, (struct sockaddr*)&addr, &addrLen) == -1)
+        getsockname(dest, (struct sockaddr*)&addr, &addrLen);
+
+        atyp_t repAtyp;
+        char repHost[HOST_LEN + 1];
+        char repPort[PORT_LEN + 1];
+
+        if(addr.ss_family == AF_INET)
         {
-            char repAtyp;
-            char repHost[HOST_LEN + 1];
-            char repPort[PORT_LEN + 1];
-
-            if(addr.ss_family == AF_INET)
-            {
-                repAtyp = ATYP_IPV4;
-                memcpy(repHost, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
-                memcpy(repPort, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
-            }
-            else
-            {
-                repAtyp = ATYP_IPV6;
-                memcpy(repHost, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
-                memcpy(repPort, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
-            }
-
-            SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
+            repAtyp = ATYP_IPV4;
+            memcpy(repHost, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
+            memcpy(repPort, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
         }
+        else
+        {
+            repAtyp = ATYP_IPV6;
+            memcpy(repHost, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
+            memcpy(repPort, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
+        }
+
+        SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
     }
     else
     {
-        SOCKS_reply(client, REP_GENERAL_ERROR, atyp, host, port);
+        SOCKS_reply(client, reply, atyp, host, port);
     }
 }
 

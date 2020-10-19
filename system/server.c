@@ -34,6 +34,7 @@ void* handle_client(void* arg)
     if(SOCKS_exchange_methods(client))
     {
         bool methodHandled = FALSE;
+
         switch(METHOD_PREFERED)
         {
             case METHOD_NOAUTH:
@@ -50,14 +51,14 @@ void* handle_client(void* arg)
             char req[REQ_LEN + 1];
             if(SOCKS_get_request(client, req))
             {
-                char addrType = req[3];
-                char* host = &req[3];
+                atyp_t atyp = req[3];
+                char* host = &req[4];
                 char* port = (req[3] == ATYP_DOMAINNAME) ? &req[3+req[4]] :
-                             (req[3] == ATYP_IPV4) ? &req[4] : &req[18];
+                             (req[3] == ATYP_IPV4) ? &req[8] : &req[20];
 
-                if (req[1] == CMD_CONNECT)   SOCKS_connect(client, addrType, host, port);
-                else if (req[1] == CMD_BIND) SOCKS_bind(client, addrType, host, port);
-                else                         SOCKS_udp_associate(client, addrType, host, port);
+                if (req[1] == CMD_CONNECT)   SOCKS_connect(client, atyp, host, port);
+                else if (req[1] == CMD_BIND) SOCKS_bind(client, atyp, host, port);
+                else                         SOCKS_udp_associate(client, atyp, host, port);
             }
         }
     }

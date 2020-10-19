@@ -1,14 +1,8 @@
-
 #include "network/io.h"
-#include "system/options.h"
 
-#include <unistd.h>
-#include <pthread.h>
+
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-
-#define AUTH_LEN 513
 
 
 bool handle_method_userpass(fd_t client)

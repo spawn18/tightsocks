@@ -14,24 +14,43 @@ bool SOCKS_get_request(fd_t client, char* req)
         bool reserved = req[2] == 0x00;
         bool addrType = (req[3] == ATYP_DOMAINNAME) || (req[3] == ATYP_IPV4) || (req[3] == ATYP_IPV6);
 
-
-        if(version && command && reserved && addrType)
+        if(command)
         {
-            int rem = 0;
-            int lenPort = 2;
+            if(addrType)
+            {
+                if(version && reserved)
+                {
+                    int rem = 0;
+                    int lenPort = 2;
 
-            if      (req[3] == ATYP_DOMAINNAME) rem = (unsigned char)req[4];
-            else if (req[3] == ATYP_IPV4)       rem = 3;
-            else if (req[3] == ATYP_IPV6)       rem = 15;
+                    if      (req[3] == ATYP_DOMAINNAME) rem = (unsigned char)req[4];
+                    else if (req[3] == ATYP_IPV4)       rem = 3;
+                    else if (req[3] == ATYP_IPV6)       rem = 15;
 
-            recv_all(client, req+5, rem+lenPort);
-            return TRUE;
+                    recv_all(client, req+5, rem+lenPort);
+                    return TRUE;
+                }
+                else
+                {
+                    SOCKS_reply(client, REP_GENERAL_FAILURE, 0, 0, 0);
+                    return FALSE;
+                }
+            }
+            else
+            {
+                SOCKS_reply(client, REP_ADDRESS_TYPE_NOT_SUPPORTED, 0, 0, 0);
+                return FALSE;
+            }
         }
         else
         {
-            SOCKS_reply(client, REP_GENERAL_ERROR, 0, 0, 0);
+            SOCKS_reply(client, REP_COMMAND_NOT_SUPPORTED, 0, 0, 0);
             return FALSE;
         }
+    }
+    else
+    {
+        return FALSE;
     }
 }
 
