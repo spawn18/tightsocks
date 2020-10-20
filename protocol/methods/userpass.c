@@ -30,9 +30,9 @@ bool handle_method_userpass(fd_t client)
 
             while(fgets(entry, 512, file) != NULL)
             {
-                if(strncmp(entry[0], user, userLen) == 0)
+                if(strncmp(&entry[0], user, userLen) == 0)
                 {
-                    if(strncmp(entry[userLen+1], pass, passLen) == 0)
+                    if(strncmp(&entry[userLen+1], pass, passLen) == 0)
                     {
                         success = TRUE;
                         break;

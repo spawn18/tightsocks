@@ -6,6 +6,7 @@
 #include "protocol/request.h"
 #include "system/options.h"
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -49,6 +50,7 @@ void* handle_client(void* arg)
         if(methodHandled)
         {
             char req[REQ_LEN + 1];
+
             if(SOCKS_get_request(client, req))
             {
                 atyp_t atyp = req[3];

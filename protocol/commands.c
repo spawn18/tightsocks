@@ -2,6 +2,7 @@
 #include "system/options.h"
 #include "protocol/reply.h"
 #include "misc/defs.h"
+#include "network/io.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -77,7 +78,6 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
             addr.ss_family = AF_INET6;
             memcpy(&(((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr), host, 4);
             memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, port, 2);
-
         }
 
         dest = socket((atyp == ATYP_IPV4) ? AF_INET : AF_INET6, SOCK_STREAM, 0);
@@ -122,6 +122,8 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
         }
 
         SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
+        handle_data(client, dest);
+        close(dest);
     }
     else
     {
