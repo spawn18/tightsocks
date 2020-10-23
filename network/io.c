@@ -26,9 +26,6 @@ bool send_all(fd_t s, const char* buf, size_t len)
     return TRUE;
 }
 
-/* TODO: blocking recv allow to recv less than 1500 for example
- * Now its just blocking, like read till theres nothing to read and send it then
- * Wait fore more again and so on */
 int recv_all(fd_t s, char* buf, size_t len)
 {
     const size_t clen = len;

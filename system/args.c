@@ -52,6 +52,11 @@ void handle_args(int argc, char** argv)
                 set_opt(OPT_IP6);
                 break;
             }
+            case 'l':
+            {
+                set_opt(OPT_LOG);
+                break;
+            }
             case 'p':
             {
                 set_opt(OPT_PORT);
@@ -121,7 +126,7 @@ void handle_args(int argc, char** argv)
 }
 
 
-void usage(char* progName)
+void usage(char* name)
 {
     printf("Usage: %s [ -4 | -6 {-v | -d} -u (-c=K) ]  \n"
            "Usage: %s -h \n\n"
@@ -134,6 +139,6 @@ void usage(char* progName)
            "Valid method names:\n* noauth - no authentication\n* userpass - username and password authentication\n"
            "\n For \"userpass\" method there must be a valid user present in users.txt file."
            "\n One line - one user. Each line contains login and password, separated by whitespace. Character limit - 255"
-           "Example:user password\n\n", progName, progName);
+           "Example:user password\n\n", name, name);
 }
 

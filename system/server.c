@@ -111,11 +111,7 @@ void serve()
             exit(-1);
         }
 
-
-        if(fcntl(server4, F_SETFL, O_NONBLOCK) == -1)
-        {
-            exit(-1);
-        }
+        fcntl(server4, F_SETFL, O_NONBLOCK);
     }
 
 
@@ -138,13 +134,12 @@ void serve()
             exit(-1);
         }
 
-        if(listen(server6, MAX_CONNECTIONS) != 0)
+        if(listen(server6, MAX_CONNECTIONS) == -1)
         {
             exit(-1);
         }
 
-        int flags6 = fcntl(server6, F_GETFL, 0);
-        fcntl(server6, F_SETFL, flags6 | O_NONBLOCK);
+        fcntl(server6, F_SETFL, O_NONBLOCK);
         int on = 1;
         setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
     }
@@ -161,8 +156,6 @@ void serve()
             int client = accept(server4, NULL, NULL);
             if(client != -1)
             {
-                printf("Accept with %s\n", strerror(errno));
-
                 pthread_mutex_lock(&mut);
                 ++totalConns;
                 pthread_mutex_unlock(&mut);

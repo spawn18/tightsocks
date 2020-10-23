@@ -52,9 +52,9 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
                 }
                 else
                 {
-                    if(errno == EHOSTUNREACH) reply = REP_HOST_UNREACHABLE;
-                    else if(errno == ENETUNREACH) reply = REP_NETWORK_UNREACHABLE;
-                    else if(errno == ECONNREFUSED) reply = REP_CONNECTION_REFUSED;
+                    if      (errno == EHOSTUNREACH) reply = REP_HOST_UNREACHABLE;
+                    else if (errno == ENETUNREACH)  reply = REP_NETWORK_UNREACHABLE;
+                    else if (errno == ECONNREFUSED) reply = REP_CONNECTION_REFUSED;
                 }
 
                 close(dest);
@@ -72,15 +72,18 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
             addr.ss_family = AF_INET;
             memcpy(&(((struct sockaddr_in*)&addr)->sin_addr.s_addr), host, 4);
             memcpy(&((struct sockaddr_in*)&addr)->sin_port, port, 2);
+
+            dest = socket(AF_INET, SOCK_STREAM, 0);
         }
         else
         {
             addr.ss_family = AF_INET6;
             memcpy(&(((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr), host, 4);
             memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, port, 2);
+
+            dest = socket(AF_INET6, SOCK_STREAM, 0);
         }
 
-        dest = socket((atyp == ATYP_IPV4) ? AF_INET : AF_INET6, SOCK_STREAM, 0);
         if(dest != -1)
         {
             if(connect(dest, (struct sockaddr*)&addr, sizeof(addr)) == 0)
@@ -123,8 +126,6 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
 
         if(SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort))
         {
-            printf("3\n");
-
             handle_data(client, dest);
         }
 

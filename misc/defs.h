@@ -28,7 +28,6 @@ typedef enum METHODS
     METHOD_NOMETHOD = 0xFF,
 } met_t;
 
-
 typedef enum REP
 {
     REP_SUCCEEDED = 0,
@@ -48,5 +47,15 @@ typedef enum ATYP
     ATYP_DOMAINNAME = 3,
     ATYP_IPV6,
 } atyp_t;
+
+typedef enum OPTIONS
+{
+    OPT_IP6,
+    OPT_IP4,
+    OPT_PORT,
+    OPT_MAX_CONNECTIONS,
+    OPT_METHOD,
+    OPT_LOG,
+} option_t;
 
 #endif 
