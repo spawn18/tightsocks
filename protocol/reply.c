@@ -23,7 +23,7 @@ bool SOCKS_reply(fd_t client, rep_t rtyp, atyp_t atyp, const char* host, const c
     else
     {
         memcpy(&rep[4], host, 16);
-        memcpy(&rep[20], port, 2);
+        memcpy(&rep[20],port, 2);
         repLen = 22;
     }
 

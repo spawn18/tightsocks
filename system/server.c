@@ -32,8 +32,6 @@ void* handle_client(void* arg)
 {
     fd_t client = *(fd_t*)arg;
 
-    printf("Thread with %d\n", client);
-
     if(SOCKS_exchange_methods(client))
     {
         printf("1\n");
@@ -78,7 +76,6 @@ void* handle_client(void* arg)
 
     free((int*)arg);
 
-    printf("Exit thread\n");
     pthread_exit(0);
 }
 

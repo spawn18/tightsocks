@@ -15,7 +15,6 @@ bool send_all(fd_t s, const char* buf, size_t len)
 
     while(len > 0)
     {
-        printf("send once\n");
         int b = send(s, p_buf, len, 0);
         if(b == -1) return FALSE;
 
@@ -54,6 +53,8 @@ void handle_data(fd_t client, fd_t server)
     fds[1].fd = server;
     fds[1].events = POLLIN | POLLOUT;
 
+    int size = 4096;
+    char buf[size];
 
     while(1)
     {
@@ -64,9 +65,8 @@ void handle_data(fd_t client, fd_t server)
             {
                 if(fds[1].revents & POLLOUT)
                 {
-                    char buffer[1500];
-                    int b = recv(fds[0].fd, buffer, 1500, 0);
-                    if(b > 0) send_all(fds[1].fd, buffer, b);
+                    int b = recv(fds[0].fd, buf, size, 0);
+                    if(b > 0) send_all(fds[1].fd, buf, b);
                     else break;
                 }
             }
@@ -75,17 +75,13 @@ void handle_data(fd_t client, fd_t server)
             {
                 if(fds[0].revents & POLLOUT)
                 {
-                    char buffer[1500];
-                    int b = recv(fds[1].fd, buffer, 1500, 0);
-                    if(b > 0) send_all(fds[0].fd, buffer, b);
+                    int b = recv(fds[1].fd, buf, size, 0);
+                    if(b > 0) send_all(fds[0].fd, buf, b);
                     else break;
                 }
             }
         }
-        else
-        {
-            break;
-        }
+        else break;
     }
 }
 

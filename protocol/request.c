@@ -31,26 +31,15 @@ bool SOCKS_get_request(fd_t client, char* req)
                     return TRUE;
                 }
                 else
-                {
-                    SOCKS_reply(client, REP_GENERAL_FAILURE, 0, 0, 0);
-                    return FALSE;
-                }
+                    SOCKS_reply(client, REP_GENERAL_FAILURE, , 0, 0);
             }
             else
-            {
                 SOCKS_reply(client, REP_ADDRESS_TYPE_NOT_SUPPORTED, 0, 0, 0);
-                return FALSE;
-            }
         }
         else
-        {
             SOCKS_reply(client, REP_COMMAND_NOT_SUPPORTED, 0, 0, 0);
-            return FALSE;
-        }
     }
-    else
-    {
-        return FALSE;
-    }
+
+    return FALSE;
 }
 
