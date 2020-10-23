@@ -121,8 +121,13 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
             memcpy(repPort, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
         }
 
-        SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort);
-        handle_data(client, dest);
+        if(SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort))
+        {
+            printf("3\n");
+
+            handle_data(client, dest);
+        }
+
         close(dest);
     }
     else

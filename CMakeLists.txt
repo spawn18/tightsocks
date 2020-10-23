@@ -27,3 +27,4 @@ add_executable(Ace
 
 target_link_libraries(Ace pthread)
 target_include_directories(Ace PUBLIC .)
+target_compile_options(Ace PUBLIC -O0)

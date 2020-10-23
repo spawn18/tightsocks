@@ -11,6 +11,7 @@ typedef int bool;
 #define PORT_LEN 5
 #define REQ_LEN 261
 #define AUTH_LEN 513
+#define REP_LEN 261
 
 typedef enum CMD
 {

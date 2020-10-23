@@ -32,8 +32,12 @@ void* handle_client(void* arg)
 {
     fd_t client = *(fd_t*)arg;
 
+    printf("Thread with %d\n", client);
+
     if(SOCKS_exchange_methods(client))
     {
+        printf("1\n");
+
         bool methodHandled = FALSE;
 
         switch(METHOD_PREFERED)
@@ -53,10 +57,11 @@ void* handle_client(void* arg)
 
             if(SOCKS_get_request(client, req))
             {
+                printf("2\n");
+
                 atyp_t atyp = req[3];
                 char* host = &req[4];
-                char* port = (req[3] == ATYP_DOMAINNAME) ? &req[3+req[4]] :
-                             (req[3] == ATYP_IPV4) ? &req[8] : &req[20];
+                char* port = (req[3] == ATYP_DOMAINNAME) ? &req[3+req[4]] : (req[3] == ATYP_IPV4) ? &req[8] : &req[20];
 
                 if (req[1] == CMD_CONNECT)   SOCKS_connect(client, atyp, host, port);
                 else if (req[1] == CMD_BIND) SOCKS_bind(client, atyp, host, port);
@@ -71,6 +76,9 @@ void* handle_client(void* arg)
     --totalConns;
     pthread_mutex_unlock(&mut);
 
+    free((int*)arg);
+
+    printf("Exit thread\n");
     pthread_exit(0);
 }
 
@@ -83,7 +91,6 @@ void serve()
     if(is_opt_set(OPT_IP4))
     {
         server4 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
         if(server4 == -1)
         {
             exit(-1);
@@ -94,20 +101,23 @@ void serve()
         addr4.sin_addr.s_addr = htonl(INADDR_ANY);
         addr4.sin_port = htons(PORT);
 
-        if(bind(server4, (struct sockaddr*)&addr4, sizeof(addr4)) == 1)
+        if(bind(server4, (struct sockaddr*)&addr4, sizeof(addr4)) == -1)
         {
             exit(-1);
         }
 
-        if(listen(server4, MAX_CONNECTIONS) != 0)
+        if(listen(server4, MAX_CONNECTIONS) == -1)
         {
             exit(-1);
         }
 
 
-        int flags4 = fcntl(server4, F_GETFL, 0);
-        fcntl(server4, F_SETFL, flags4 | O_NONBLOCK);
+        if(fcntl(server4, F_SETFL, O_NONBLOCK) == -1)
+        {
+            exit(-1);
+        }
     }
+
 
     if(is_opt_set(OPT_IP6))
     {
@@ -133,11 +143,11 @@ void serve()
             exit(-1);
         }
 
-
         int flags6 = fcntl(server6, F_GETFL, 0);
         fcntl(server6, F_SETFL, flags6 | O_NONBLOCK);
+        int on = 1;
+        setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
     }
-
 
     while(1)
     {
@@ -149,33 +159,37 @@ void serve()
         if(is_opt_set(OPT_IP4))
         {
             int client = accept(server4, NULL, NULL);
-            if((client != EAGAIN || client != EWOULDBLOCK) && client != -1)
+            if(client != -1)
             {
+                printf("Accept with %s\n", strerror(errno));
+
                 pthread_mutex_lock(&mut);
                 ++totalConns;
                 pthread_mutex_unlock(&mut);
 
                 pthread_t thread = 0;
-                if (pthread_create(&thread, NULL, handle_client, &client) == 0)
+                int* clientArg = malloc(sizeof(client));
+                *clientArg = client;
+                if (pthread_create(&thread, NULL, handle_client, clientArg) == 0)
                 {
-                    if(pthread_detach(thread) != 0)
-                    {
-                        printf("hmmm");
-                    }
+                    pthread_detach(thread);
                 }
             }
         }
+
         if(is_opt_set(OPT_IP6))
         {
             int client = accept(server6, NULL, NULL);
-            if((client != EAGAIN || client != EWOULDBLOCK) && client != -1)
+            if(client != -1)
             {
                 pthread_mutex_lock(&mut);
                 ++totalConns;
                 pthread_mutex_unlock(&mut);
 
                 pthread_t thread = 0;
-                if (pthread_create(&thread, NULL, handle_client, &client) == 0)
+                int* clientArg = malloc(sizeof(client));
+                *clientArg = client;
+                if (pthread_create(&thread, NULL, handle_client, clientArg) == 0)
                 {
                     pthread_detach(thread);
                 }
