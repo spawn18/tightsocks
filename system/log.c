@@ -24,11 +24,9 @@ bool log_open()
         if(logFile == NULL) return FALSE;
         fputs(desc, logFile);
         fflush(logFile);
-        printf("what\n");
     }
     else
     {
-        printf("hmm\n");
         fseek(logFile, 0, SEEK_END);
     }
 
@@ -63,10 +61,10 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
     }
 
     atyp_t atyp;
-    char host[HOST_LEN + 1];
-    char port[PORT_LEN + 1];
+    char *host;
+    char *port;
 
-    parse_req(req, &atyp, host, port);
+    parse_req(req, &atyp, &host, &port);
 
 
     if(atyp == ATYP_DOMAINNAME)
@@ -103,7 +101,6 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
 
 void log_write(log_entry_t entry)
 {
-    printf("2\n");
 
     char date[DATE_LEN + 1];
     get_date(date);

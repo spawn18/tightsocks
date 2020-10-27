@@ -17,7 +17,7 @@ void SOCKS_connect(fd_t client, char* req)
     char* host = NULL;
     char* port = NULL;
 
-    parse_req(req, &atyp, host, port);
+    parse_req(req, &atyp, &host, &port);
 
     fd_t dest;
     bool done = FALSE;
@@ -146,9 +146,7 @@ void SOCKS_bind(fd_t client, char* req)
     char* host;
     char* port;
 
-    parse_req(req, &atyp, host, port);
-
-
+    parse_req(req, &atyp, &host, &port);
 }
 
 

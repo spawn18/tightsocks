@@ -53,13 +53,9 @@ void* handle_client(void* arg)
 
                     if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
                     {
-                        printf("1\n");
-
                         log_entry_t entry;
                         log_fmt_entry(addr, req, &entry);
                         log_write(entry);
-
-                        printf("xddd\n");
                     }
                 }
 

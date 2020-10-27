@@ -3,8 +3,7 @@
 #include "protocol/request.h"
 
 #include <arpa/inet.h>
-
-
+#include <stdio.h>
 
 
 static void dec_to_hex(int d, char* hex)
