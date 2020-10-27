@@ -11,10 +11,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#define MAX_CONNECTIONS_LIMIT 1024
-
-
-
 
 struct option long_options[] = {
         {"ip4", 0, 0, '4'},
@@ -35,7 +31,7 @@ void handle_args(int argc, char** argv)
     int opt_char = 0;
     do
     {
-        opt_char = getopt_long(argc, argv, "46lp:c:m:h", long_options, NULL);
+        opt_char = getopt_long(argc, argv, "h46lp:c:m:", long_options, NULL);
 
         switch(opt_char)
         {
@@ -54,6 +50,42 @@ void handle_args(int argc, char** argv)
                 set_opt(OPT_IP6);
                 break;
             }
+            case 'd':
+            {
+                set_opt(OPT_DECLINE);
+
+                if(*optarg == 1)
+                {
+                    set_decline(DECLINE_CONNECT);
+                }
+                else if(*optarg == 2)
+                {
+                    set_decline(DECLINE_BIND);
+                }
+                else if(*optarg == 3)
+                {
+                    set_decline(DECLINE_UDP_ASSOCIATE);
+                }
+                else if(*optarg == 4)
+                {
+                    set_decline(DECLINE_IPV4);
+                }
+                else if(*optarg == 5)
+                {
+                    set_decline(DECLINE_IPV6);
+                }
+                else if(*optarg == 6)
+                {
+                    set_decline(DECLINE_DOMAINNAME);
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
+                break;
+            }
             case 'l':
             {
                 set_opt(OPT_LOG);
@@ -68,9 +100,7 @@ void handle_args(int argc, char** argv)
                 long tmp = strtol(optarg, NULL, 10);
                 if(tmp < 0 || 65535 < tmp || errno == ERANGE)
                 {
-                    fprintf(stderr, "Error: incorrect value for -p/--port\n\n");
                     usage(name);
-
                     exit(-1);
                 }
 
@@ -85,9 +115,7 @@ void handle_args(int argc, char** argv)
                 MAX_CONNECTIONS = (int)strtol(optarg, NULL, 10);
                 if(MAX_CONNECTIONS <= 0 ||  errno == ERANGE)
                 {
-                    fprintf(stderr, "Error: incorrect value for -c/--max-connections\n\n");
                     usage(name);
-
                     exit(-1);
                 }
 
@@ -97,21 +125,19 @@ void handle_args(int argc, char** argv)
             {
                 set_opt(OPT_METHOD);
 
-                if(strcmp(optarg, "userpass") == 0)
+                if(*optarg == 0)
+                {
+                    METHOD_PREFERED = METHOD_NOMETHOD;
+                    break;
+                }
+                else if(*optarg == 1)
                 {
                     METHOD_PREFERED = METHOD_USERPASS;
                     break;
                 }
-                else if(strcmp(optarg, "noauth") == 0)
-                {
-                    METHOD_PREFERED = METHOD_NOAUTH;
-                    break;
-                }
                 else
                 {
-                    fprintf(stderr,"Error: incorrect value for -m/--method\n\n");
                     usage(name);
-
                     exit(-1);
                 }
 
@@ -132,17 +158,24 @@ void handle_args(int argc, char** argv)
 
 void usage(char* name)
 {
-    printf("Usage: %s [ -4 | -6 {-v | -d} -u (-c=K) ]  \n"
-           "Usage: %s -h \n\n"
-           "-h --help               Print this usage guide \n"
-           "-4 --ip4                Accept ipv4 clients [default]\n"
-           "-6 --ip6                Accept ipv6 clients \n"
-           "-p= --port=             Set server port manually. Range 1024-65535 [default: 1080]\n"
-           "-c= --max-connections=  Connection limit for server  [default: 1024]\n"
-           "-m= --method=           Authentication method used in SOCKS protocol [default: noauth]\n"
-           "Valid method names:\n* noauth - no authentication\n* userpass - username and password authentication\n"
-           "\n For \"userpass\" method there must be a valid user present in users.txt file."
-           "\n One line - one user. Each line contains login and password, separated by whitespace. Character limit - 255"
-           "Example:user password\n\n", name, name);
+    printf("Usage: %s [OPTION]... \n\n"
+           "-h, --help                                              Print this usage guide \n"
+           "-4, --ip4                                               Accept ipv4 clients [default]\n"
+           "-6, --ip6                                               Accept ipv6 clients \n"
+           "-d, --decline=FIELD                                     Decline requests that have field set\n"
+           "                                                        To add multiple values, use option multiple times\n"
+           "                                                        1 - CONNECT command\n"
+           "                                                        2 - BIND command\n"
+           "                                                        3 - UDP ASSOCIATE command\n"
+           "                                                        4 - IPv4 address\n"
+           "                                                        5 - IPv6 address\n"
+           "                                                        6 - Domain name\n"
+           "-l, --log                                               Enable logging to .csv file"
+           "-p NUMBER, --port=NUMBER                                Set server port manually. Range 1024-65535 [default: 1080]\n"
+           "-c LIMIT, --max-connections=LIMIT                       Connection limit for server  [default: 1024]\n"
+           "-m NAME, --method=NAME                                  Authentication method used for clients [default: noauth]\n"
+           "                                                        Supported methods:\n"
+           "                                                        * 0 - no authentication\n"
+           "                                                        * 1 - username and password authentication\n", name);
 }
 

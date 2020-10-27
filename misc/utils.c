@@ -64,7 +64,14 @@ static void remove_char(const char* strIn, char* strOut, char ch)
 
 void fmt_addr(struct sockaddr_storage addr, char* host, char* port)
 {
-    inet_ntop(addr.ss_family, (void*)&addr, host, HOST_LEN+1);
+    if(addr.ss_family == AF_INET)
+    {
+        inet_ntop(addr.ss_family, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, host, HOST_LEN+1);
+    }
+    else
+    {
+        inet_ntop(addr.ss_family, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, host, HOST_LEN+1);
+    }
 
     unsigned short sPort;
 

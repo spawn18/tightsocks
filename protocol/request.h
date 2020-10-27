@@ -9,7 +9,7 @@
 
 
 
-bool SOCKS_get_request(fd_t client, char* request);
+bool SOCKS_handle_request(fd_t client, char* request);
 
 
 #endif

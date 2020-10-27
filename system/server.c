@@ -44,7 +44,7 @@ void* handle_client(void* arg)
         if(methodHandled)
         {
             char req[REQ_LEN + 1];
-            if(SOCKS_get_request(client, req))
+            if(SOCKS_handle_request(client, req))
             {
                 if(is_opt_set(OPT_LOG))
                 {

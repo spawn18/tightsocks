@@ -16,7 +16,6 @@ typedef int bool;
 #define LOG_ENTRY_LEN 1024
 #define CMD_LEN 13
 #define ATYP_LEN 10
-#define FQDN_LEN 255
 #define DATE_LEN 255
 #define TIME_LEN 255
 
@@ -63,7 +62,18 @@ typedef enum OPTIONS
     OPT_MAX_CONNECTIONS,
     OPT_METHOD,
     OPT_LOG,
+    OPT_DECLINE,
 } option_t;
+
+typedef enum DECLINE_FIELDS
+{
+    DECLINE_CONNECT = 1,
+    DECLINE_BIND,
+    DECLINE_UDP_ASSOCIATE,
+    DECLINE_IPV4,
+    DECLINE_IPV6,
+    DECLINE_DOMAINNAME
+} decline_t;
 
 typedef struct LOG_ENTRY_T
 {

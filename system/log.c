@@ -91,7 +91,7 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
             strcpy(entry->addrType, "IPV6");
 
             dstAddr.ss_family = AF_INET6;
-            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, host, 4);
+            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, host, 16);
             memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_port, port, 2);
             fmt_addr(dstAddr, entry->dstHost, entry->dstPort);
         }

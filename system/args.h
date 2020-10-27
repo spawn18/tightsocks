@@ -2,8 +2,7 @@
 #define ACE_ARGS_H
 
 
-void handle_args(int argc, char** argv);
-
-void usage(char* programName);
+void handle_args(int, char**);
+void usage(char*);
 
 #endif 
