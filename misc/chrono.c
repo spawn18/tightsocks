@@ -21,6 +21,6 @@ void get_time(char* buf)
     time_t t = time(NULL);
     struct tm *tms = NULL;
     tms = localtime(&t);
-    strftime(buf, TIME_LEN, "%R", tms);
+    strftime(buf, TIME_LEN, "%T", tms);
 }
 
