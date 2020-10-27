@@ -55,6 +55,7 @@ void* handle_client(void* arg)
                     {
                         log_entry_t entry;
                         log_fmt_entry(addr, req, &entry);
+                        printf("%s", entry.command);
                         log_write(entry);
                     }
                 }

@@ -69,7 +69,7 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
 
     if(atyp == ATYP_DOMAINNAME)
     {
-        strcpy(entry->command, "DOMAINNAME");
+        strcpy(entry->addrType, "DOMAINNAME");
         strncpy(entry->dstHost, host+1, *host);
         entry->dstHost[*host] = '\0';
     }
@@ -79,7 +79,7 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
 
         if(atyp == ATYP_IPV4)
         {
-            strcpy(entry->command, "IPV4");
+            strcpy(entry->addrType, "IPV4");
 
             dstAddr.ss_family = AF_INET;
             memcpy(&((struct sockaddr_in*)&dstAddr)->sin_addr.s_addr, host, 4);
@@ -88,7 +88,7 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
         }
         else if(atyp == ATYP_IPV6)
         {
-            strcpy(entry->command, "IPV6");
+            strcpy(entry->addrType, "IPV6");
 
             dstAddr.ss_family = AF_INET6;
             memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, host, 4);
@@ -101,7 +101,6 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
 
 void log_write(log_entry_t entry)
 {
-
     char date[DATE_LEN + 1];
     get_date(date);
 
@@ -109,8 +108,6 @@ void log_write(log_entry_t entry)
     get_time(time);
 
     char s[LOG_ENTRY_LEN + 1];
-
-    printf("3\n");
 
     strcat(s, date);
     strcat(s, ",");
@@ -120,9 +117,9 @@ void log_write(log_entry_t entry)
     strcat(s, ",");
     strcat(s, entry.srcPort);
     strcat(s, ",");
-    strcat(s, entry.addrType);
-    strcat(s, ",");
     strcat(s, entry.command);
+    strcat(s, ",");
+    strcat(s, entry.addrType);
     strcat(s, ",");
     strcat(s, entry.dstHost);
     strcat(s, ",");
@@ -131,8 +128,6 @@ void log_write(log_entry_t entry)
 
     pthread_mutex_lock(&mut);
     fputs(s, logFile);
-
-    printf("4\n");
     fflush(logFile);
     pthread_mutex_unlock(&mut);
 }
