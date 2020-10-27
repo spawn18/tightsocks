@@ -171,9 +171,9 @@ void usage(char* name)
            "                                                        5 - IPv6 address\n"
            "                                                        6 - Domain name\n"
            "-l, --log                                               Enable logging to .csv file"
-           "-p NUMBER, --port=NUMBER                                Set server port manually. Range 1024-65535 [default: 1080]\n"
-           "-c LIMIT, --max-connections=LIMIT                       Connection limit for server  [default: 1024]\n"
-           "-m NAME, --method=NAME                                  Authentication method used for clients [default: noauth]\n"
+           "-p, --port=NUMBER                                Set server port manually. Range 1024-65535 [default: 1080]\n"
+           "-c, --max-connections=LIMIT                       Connection limit for server  [default: 1024]\n"
+           "-m, --method=NAME                                  Authentication method used for clients [default: noauth]\n"
            "                                                        Supported methods:\n"
            "                                                        * 0 - no authentication\n"
            "                                                        * 1 - username and password authentication\n", name);
