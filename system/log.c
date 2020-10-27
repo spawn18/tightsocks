@@ -14,7 +14,7 @@ static pthread_mutex_t mut;
 
 bool log_open()
 {
-    char* desc = "date,time,\"source host\",\"source port\",command,\"destination host\",\"destination port\"\n";
+    char* desc = "date,time,\"source host\",\"source port\",command,\"address type\",\"destination host\",\"destination port\"\n";
 
     logFile = fopen("log.csv", "r+");
 
