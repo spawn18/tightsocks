@@ -23,8 +23,13 @@ add_executable(Ace
         protocol/method_exchange.c
         protocol/method_exchange.h
         protocol/reply.c
-        protocol/reply.h)
+        protocol/reply.h
+        system/log.c
+        system/log.h
+        misc/utils.c
+        misc/utils.h
+        misc/chrono.c
+        misc/chrono.h)
 
 target_link_libraries(Ace pthread)
 target_include_directories(Ace PUBLIC .)
-target_compile_options(Ace PUBLIC -O0)

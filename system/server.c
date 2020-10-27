@@ -1,27 +1,21 @@
-
 #include "server.h"
 
 #include "misc/defs.h"
 #include "protocol/commands.h"
 #include "protocol/request.h"
+#include "log.h"
 #include "system/options.h"
 
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <string.h>
 #include <sys/socket.h>
-#include <poll.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <arpa/inet.h>
-#include <getopt.h>
-#include <netdb.h>
 #include <netinet/in.h>
-#include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 
 static int totalConns = 0;
@@ -34,8 +28,6 @@ void* handle_client(void* arg)
 
     if(SOCKS_exchange_methods(client))
     {
-        printf("1\n");
-
         bool methodHandled = FALSE;
 
         switch(METHOD_PREFERED)
@@ -52,18 +44,28 @@ void* handle_client(void* arg)
         if(methodHandled)
         {
             char req[REQ_LEN + 1];
-
             if(SOCKS_get_request(client, req))
             {
-                printf("2\n");
+                if(is_opt_set(OPT_LOG))
+                {
+                    struct sockaddr_storage addr;
+                    socklen_t len = sizeof(addr);
 
-                atyp_t atyp = req[3];
-                char* host = &req[4];
-                char* port = (req[3] == ATYP_DOMAINNAME) ? &req[3+req[4]] : (req[3] == ATYP_IPV4) ? &req[8] : &req[20];
+                    if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
+                    {
+                        printf("1\n");
 
-                if (req[1] == CMD_CONNECT)   SOCKS_connect(client, atyp, host, port);
-                else if (req[1] == CMD_BIND) SOCKS_bind(client, atyp, host, port);
-                else                         SOCKS_udp_associate(client, atyp, host, port);
+                        log_entry_t entry;
+                        log_fmt_entry(addr, req, &entry);
+                        log_write(entry);
+
+                        printf("xddd\n");
+                    }
+                }
+
+                if (req[1] == CMD_CONNECT)   SOCKS_connect(client, req);
+                else if (req[1] == CMD_BIND) SOCKS_bind(client, req);
+                else                         SOCKS_udp_associate(client, req);
             }
         }
     }

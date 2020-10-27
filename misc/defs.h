@@ -12,6 +12,13 @@ typedef int bool;
 #define REQ_LEN 261
 #define AUTH_LEN 513
 #define REP_LEN 261
+#define METHODS_LEN 257
+#define LOG_ENTRY_LEN 1024
+#define CMD_LEN 13
+#define ATYP_LEN 10
+#define FQDN_LEN 255
+#define DATE_LEN 255
+#define TIME_LEN 255
 
 typedef enum CMD
 {
@@ -57,5 +64,15 @@ typedef enum OPTIONS
     OPT_METHOD,
     OPT_LOG,
 } option_t;
+
+typedef struct LOG_ENTRY_T
+{
+    char srcHost[HOST_LEN + 1];
+    char srcPort[PORT_LEN + 1];
+    char command[CMD_LEN + 1];
+    char addrType[ATYP_LEN + 1];
+    char dstHost[HOST_LEN + 1];
+    char dstPort[PORT_LEN + 1];
+} log_entry_t;
 
 #endif 

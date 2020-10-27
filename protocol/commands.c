@@ -1,11 +1,9 @@
 #include "commands.h"
-#include "system/options.h"
 #include "protocol/reply.h"
 #include "misc/defs.h"
 #include "network/io.h"
+#include "misc/utils.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -13,11 +11,16 @@
 
 
 
-void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
+void SOCKS_connect(fd_t client, char* req)
 {
+    atyp_t atyp;
+    char* host = NULL;
+    char* port = NULL;
+
+    parse_req(req, &atyp, host, port);
+
     fd_t dest;
     bool done = FALSE;
-
     rep_t reply = REP_GENERAL_FAILURE;
 
     if(atyp == ATYP_DOMAINNAME)
@@ -137,13 +140,19 @@ void SOCKS_connect(fd_t client, atyp_t atyp, const char* host, const char* port)
     }
 }
 
-void SOCKS_bind(fd_t client, atyp_t atyp, const char* host, const char* port)
+void SOCKS_bind(fd_t client, char* req)
 {
+    atyp_t atyp;
+    char* host;
+    char* port;
+
+    parse_req(req, &atyp, host, port);
+
 
 }
 
 
-void SOCKS_udp_associate(fd_t client, atyp_t atyp, const char* host, const char* port)
+void SOCKS_udp_associate(fd_t client, char* req)
 {
 
 }

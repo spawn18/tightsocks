@@ -1,13 +1,8 @@
-
 #include "io.h"
 
 #include <stddef.h>
 #include <sys/socket.h>
 #include <poll.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-
 
 bool send_all(fd_t s, const char* buf, size_t len)
 {

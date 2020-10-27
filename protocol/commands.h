@@ -8,8 +8,8 @@
 
 
 
-void SOCKS_bind(fd_t, atyp_t, const char*, const char*);
-void SOCKS_connect(fd_t, atyp_t, const char*, const char*);
-void SOCKS_udp_associate(fd_t, atyp_t, const char*, const char*);
+void SOCKS_bind(fd_t, char*);
+void SOCKS_connect(fd_t, char*);
+void SOCKS_udp_associate(fd_t, char*);
 
 #endif 

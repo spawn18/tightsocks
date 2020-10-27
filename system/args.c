@@ -3,6 +3,7 @@
 
 #include "protocol/method_exchange.h"
 #include "options.h"
+#include "system/log.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -22,6 +23,7 @@ struct option long_options[] = {
         {"max-connections", 1, 0, 'c'},
         {"method", 1, 0, 'm'},
         {"help", 0, 0, 'h'},
+        {"log", 0, 0, 'l'}
 };
 
 void handle_args(int argc, char** argv)
@@ -29,11 +31,11 @@ void handle_args(int argc, char** argv)
     char name[strlen(argv[0]) + 1];
     strcpy(name, argv[0]);
 
-    // Loop over options
+
     int opt_char = 0;
     do
     {
-        opt_char = getopt_long(argc, argv, "46p:c:m:h", long_options, NULL);
+        opt_char = getopt_long(argc, argv, "46lp:c:m:h", long_options, NULL);
 
         switch(opt_char)
         {
@@ -55,6 +57,8 @@ void handle_args(int argc, char** argv)
             case 'l':
             {
                 set_opt(OPT_LOG);
+                if(!log_open())
+                    exit(-1);
                 break;
             }
             case 'p':

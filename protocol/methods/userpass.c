@@ -15,6 +15,7 @@ bool handle_method_userpass(fd_t client)
     if(auth[0] == SOCKS_VER)
     {
         recv_all(client, auth+2, auth[1]+1);
+
         char* user = auth+2;
         char userLen = auth[1];
 
@@ -22,7 +23,7 @@ bool handle_method_userpass(fd_t client)
         char* pass = auth+3+userLen;
         char passLen = auth[2+userLen];
 
-        FILE* file = fopen("users.db", "r");
+        FILE* file = fopen("users.conf", "r");
 
         if(file != NULL)
         {
