@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 
 
 struct option long_options[] = {
@@ -86,6 +87,21 @@ void handle_args(int argc, char** argv)
 
                 break;
             }
+            case 'b':
+            {
+                set_opt(OPT_BUFSIZE);
+
+                int v = strtol(optarg, NULL, 10);
+                if(v == 2 || v == 4 || v == 8 || v == 16  || v == 32 || v == 64)
+                {
+                    BUFSIZE = (int)pow(2, 10+log2(v));
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+            }
             case 'l':
             {
                 set_opt(OPT_LOG);
@@ -105,7 +121,6 @@ void handle_args(int argc, char** argv)
                 }
 
                 PORT = (short)tmp;
-
                 break;
             }
             case 'c':
@@ -171,6 +186,8 @@ void usage(char* name)
            "                                    5 - IPv6 address\n"
            "                                    6 - Domain name\n"
            "-l, --log                           Enable logging to .csv file\n"
+           "-b, --bufsize=SIZE                  Set buffer size for TCP connections in kilobytes\n"
+           "                                    Recommended for advanced users only [default: 8]\n"
            "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
            "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
            "-m, --method=NAME                   Authentication method used for clients [default: noauth]\n"

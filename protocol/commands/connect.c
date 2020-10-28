@@ -3,11 +3,13 @@
 #include "protocol/reply.h"
 #include "network/io.h"
 #include "misc/utils.h"
+#include "system/options.h"
 
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
+#include <poll.h>
 
 
 void SOCKS_connect(fd_t client, char* req)
@@ -128,7 +130,43 @@ void SOCKS_connect(fd_t client, char* req)
 
         if(SOCKS_reply(client, REP_SUCCEEDED, repAtyp, repHost, repPort))
         {
-            handle_data(client, dest);
+            struct pollfd fds[2];
+
+            fds[0].fd = client;
+            fds[0].events = POLLIN | POLLOUT;
+
+            fds[1].fd = dest;
+            fds[1].events = POLLIN | POLLOUT;
+
+            char buf[BUFSIZE];
+
+            while(1)
+            {
+                int s = poll(fds, 2, 10000);
+                if(s > 0)
+                {
+                    if(fds[0].revents & POLLIN)
+                    {
+                        if(fds[1].revents & POLLOUT)
+                        {
+                            int b = recv(fds[0].fd, buf, BUFSIZE, 0);
+                            if(b > 0) send_all(fds[1].fd, buf, b);
+                            else break;
+                        }
+                    }
+
+                    if(fds[1].revents & POLLIN)
+                    {
+                        if(fds[0].revents & POLLOUT)
+                        {
+                            int b = recv(fds[1].fd, buf, BUFSIZE, 0);
+                            if(b > 0) send_all(fds[0].fd, buf, b);
+                            else break;
+                        }
+                    }
+                }
+                else break;
+            }
         }
 
         close(dest);

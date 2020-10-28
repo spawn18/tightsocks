@@ -63,6 +63,7 @@ typedef enum OPTIONS
     OPT_METHOD,
     OPT_LOG,
     OPT_DECLINE,
+    OPT_BUFSIZE
 } option_t;
 
 typedef enum DECLINE_FIELDS
