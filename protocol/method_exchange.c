@@ -15,7 +15,7 @@ bool SOCKS_exchange_methods(fd_t client)
         {
             if(recv_all(client, methods+2, methods[1]) > 0)
             {
-                met_t m = METHOD_NOMETHOD;
+                method_t m = METHOD_NOMETHOD;
 
                 for (int i = 0; i < methods[1]; i++)
                 {

@@ -2,15 +2,40 @@
 #define ACE_OPTIONS_H
 
 extern int MAX_CONNECTIONS;
-extern int METHOD_PREFERED;
+extern method_t METHOD_PREFERED;
 extern unsigned short PORT;
+extern option_t OPTIONS;
+extern decline_t DECLINES;
 
-bool is_opt_set(option_t);
-void set_opt(option_t);
-void unset_opt(option_t);
+inline bool is_opt_set(option_t opt)
+{
+    return OPTIONS & opt;
+}
 
-bool is_decline_set(decline_t);
-void set_decline(decline_t);
-void unset_decline(decline_t);
+inline void set_opt(option_t opt)
+{
+    OPTIONS |= opt;
+}
+
+inline void unset_opt(option_t opt)
+{
+    OPTIONS &= ~opt;
+}
+
+
+inline bool is_decline_set(decline_t dec)
+{
+    return DECLINES & dec;
+}
+
+inline void set_decline(decline_t dec)
+{
+    DECLINES |= dec;
+}
+
+inline void unset_decline(decline_t dec)
+{
+    DECLINES &= ~dec;
+}
 
 #endif 

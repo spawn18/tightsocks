@@ -32,7 +32,7 @@ typedef enum METHODS
     METHOD_GSSAPI,
     METHOD_USERPASS ,
     METHOD_NOMETHOD = 0xFF,
-} met_t;
+} method_t;
 
 typedef enum REP
 {
