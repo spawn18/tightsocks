@@ -1,4 +1,5 @@
 #include "io.h"
+#include "system/options.h"
 
 #include <stddef.h>
 #include <sys/socket.h>
@@ -48,8 +49,7 @@ void handle_data(fd_t client, fd_t server)
     fds[1].fd = server;
     fds[1].events = POLLIN | POLLOUT;
 
-    int size = 4096;
-    char buf[size];
+    char buf[BUFSIZE];
 
     while(1)
     {
@@ -60,7 +60,7 @@ void handle_data(fd_t client, fd_t server)
             {
                 if(fds[1].revents & POLLOUT)
                 {
-                    int b = recv(fds[0].fd, buf, size, 0);
+                    int b = recv(fds[0].fd, buf, BUFSIZE, 0);
                     if(b > 0) send_all(fds[1].fd, buf, b);
                     else break;
                 }
@@ -70,7 +70,7 @@ void handle_data(fd_t client, fd_t server)
             {
                 if(fds[0].revents & POLLOUT)
                 {
-                    int b = recv(fds[1].fd, buf, size, 0);
+                    int b = recv(fds[1].fd, buf, BUFSIZE, 0);
                     if(b > 0) send_all(fds[0].fd, buf, b);
                     else break;
                 }

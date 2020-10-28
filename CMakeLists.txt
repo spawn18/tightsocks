@@ -17,8 +17,6 @@ add_executable(Ace
         system/options.h
         system/server.c
         system/server.h
-        protocol/commands.c
-        protocol/commands.h
         misc/defs.h
         protocol/method_exchange.c
         protocol/method_exchange.h
@@ -29,7 +27,7 @@ add_executable(Ace
         misc/utils.c
         misc/utils.h
         misc/chrono.c
-        misc/chrono.h)
+        misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h)
 
 target_link_libraries(Ace pthread)
 target_include_directories(Ace PUBLIC .)

@@ -125,12 +125,12 @@ void handle_args(int argc, char** argv)
             {
                 set_opt(OPT_METHOD);
 
-                if(*optarg == 0)
+                if(strcmp(optarg, "noauth") == 0)
                 {
                     METHOD_PREFERED = METHOD_NOMETHOD;
                     break;
                 }
-                else if(*optarg == 1)
+                else if(strcmp(optarg, "userpass") == 0)
                 {
                     METHOD_PREFERED = METHOD_USERPASS;
                     break;
@@ -159,23 +159,23 @@ void handle_args(int argc, char** argv)
 void usage(char* name)
 {
     printf("Usage: %s [OPTION]... \n\n"
-           "-h, --help                                              Print this usage guide \n"
-           "-4, --ip4                                               Accept ipv4 clients [default]\n"
-           "-6, --ip6                                               Accept ipv6 clients \n"
-           "-d, --decline=FIELD                                     Decline requests that have field set\n"
-           "                                                        To add multiple values, use option multiple times\n"
-           "                                                        1 - CONNECT command\n"
-           "                                                        2 - BIND command\n"
-           "                                                        3 - UDP ASSOCIATE command\n"
-           "                                                        4 - IPv4 address\n"
-           "                                                        5 - IPv6 address\n"
-           "                                                        6 - Domain name\n"
-           "-l, --log                                               Enable logging to .csv file"
-           "-p, --port=NUMBER                                Set server port manually. Range 1024-65535 [default: 1080]\n"
-           "-c, --max-connections=LIMIT                       Connection limit for server  [default: 1024]\n"
-           "-m, --method=NAME                                  Authentication method used for clients [default: noauth]\n"
-           "                                                        Supported methods:\n"
-           "                                                        * 0 - no authentication\n"
-           "                                                        * 1 - username and password authentication\n", name);
+           "-h, --help                          Print this usage guide \n"
+           "-4, --ip4                           Accept ipv4 clients [default]\n"
+           "-6, --ip6                           Accept ipv6 clients \n"
+           "-d, --decline=NUMBER                Decline requests that have a field set\n"
+           "                                    To add multiple values, use option multiple times\n"
+           "                                    1 - CONNECT command\n"
+           "                                    2 - BIND command\n"
+           "                                    3 - UDP ASSOCIATE command\n"
+           "                                    4 - IPv4 address\n"
+           "                                    5 - IPv6 address\n"
+           "                                    6 - Domain name\n"
+           "-l, --log                           Enable logging to .csv file\n"
+           "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
+           "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
+           "-m, --method=NAME                   Authentication method used for clients [default: noauth]\n"
+           "                                    Supported methods:\n"
+           "                                    noauth - no authentication\n"
+           "                                    userpass - username and password\n", name);
 }
 

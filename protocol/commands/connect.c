@@ -1,6 +1,6 @@
-#include "commands.h"
+#include "connect.h"
+
 #include "protocol/reply.h"
-#include "misc/defs.h"
 #include "network/io.h"
 #include "misc/utils.h"
 
@@ -8,7 +8,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
-
 
 
 void SOCKS_connect(fd_t client, char* req)
@@ -138,19 +137,4 @@ void SOCKS_connect(fd_t client, char* req)
     {
         SOCKS_reply(client, reply, atyp, host, port);
     }
-}
-
-void SOCKS_bind(fd_t client, char* req)
-{
-    atyp_t atyp;
-    char* host;
-    char* port;
-
-    parse_req(req, &atyp, &host, &port);
-}
-
-
-void SOCKS_udp_associate(fd_t client, char* req)
-{
-
 }

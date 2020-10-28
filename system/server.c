@@ -1,9 +1,11 @@
 #include "server.h"
 
 #include "misc/defs.h"
-#include "protocol/commands.h"
 #include "protocol/request.h"
 #include "log.h"
+#include "protocol/commands/connect.h"
+#include "protocol/commands/bind.h"
+#include "protocol/commands/udp_associate.h"
 #include "system/options.h"
 
 
