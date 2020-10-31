@@ -38,3 +38,43 @@ int recv_all(fd_t s, char* buf, size_t len)
     return clen;
 }
 
+void handle_io(fd_t s1, fd_t s2)
+{
+    struct pollfd fds[2];
+
+    fds[0].fd = s1;
+    fds[0].events = POLLIN | POLLOUT;
+
+    fds[1].fd = s2;
+    fds[1].events = POLLIN | POLLOUT;
+
+    char buf[BUFSIZE];
+
+    while(1)
+    {
+        int s = poll(fds, 2, 10000);
+        if(s > 0)
+        {
+            if(fds[0].revents & POLLIN)
+            {
+                if(fds[1].revents & POLLOUT)
+                {
+                    int b = recv(fds[0].fd, buf, BUFSIZE, 0);
+                    if(b > 0) send_all(fds[1].fd, buf, b);
+                    else break;
+                }
+            }
+
+            if(fds[1].revents & POLLIN)
+            {
+                if(fds[0].revents & POLLOUT)
+                {
+                    int b = recv(fds[1].fd, buf, BUFSIZE, 0);
+                    if(b > 0) send_all(fds[0].fd, buf, b);
+                    else break;
+                }
+            }
+        }
+        else break;
+    }
+}

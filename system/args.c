@@ -14,13 +14,16 @@
 
 
 struct option long_options[] = {
-        {"ip4", 0, 0, '4'},
-        {"ip6", 0, 0, '6'},
+        {"ipv4", 0, 0, '4'},
+        {"ipv6", 0, 0, '6'},
+        {"log", 0, 0, 'l'},
         {"port", 1, 0, 'p'},
         {"max-connections", 1, 0, 'c'},
         {"method", 1, 0, 'm'},
+        {"decline", 1, 0, 'd'},
+        {"bufsize", 1, 0, 'b'},
         {"help", 0, 0, 'h'},
-        {"log", 0, 0, 'l'}
+
 };
 
 void handle_args(int argc, char** argv)
@@ -32,15 +35,10 @@ void handle_args(int argc, char** argv)
     int opt_char = 0;
     do
     {
-        opt_char = getopt_long(argc, argv, "h46lp:c:m:", long_options, NULL);
+        opt_char = getopt_long(argc, argv, "46lp:c:m:d:b:h", long_options, NULL);
 
         switch(opt_char)
         {
-            case 'h':
-            {
-                usage(name);
-                exit(0);
-            }
             case '4':
             {
                 set_opt(OPT_IP4);
@@ -49,6 +47,67 @@ void handle_args(int argc, char** argv)
             case '6':
             {
                 set_opt(OPT_IP6);
+            }
+            case 'l':
+            {
+                set_opt(OPT_LOG);
+
+                if(!log_open()) exit(-1);
+
+                break;
+            }
+            case 'p':
+            {
+                set_opt(OPT_PORT);
+
+                long tmp = strtol(optarg, NULL, 10);
+                if(0 < tmp && tmp < 65535 && errno != ERANGE)
+                {
+                    PORT = tmp;
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
+                break;
+            }
+            case 'c':
+            {
+                set_opt(OPT_MAX_CONNECTIONS);
+
+                int t = (int)strtol(optarg, NULL, 10);
+                if(errno == ERANGE)
+                {
+                    MAX_CONNECTIONS = t;
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
+                break;
+            }
+            case 'm':
+            {
+                set_opt(OPT_METHOD);
+
+                if(strcmp(optarg, "noauth") == 0)
+                {
+                    METHOD_PREFERED = METHOD_NOMETHOD;
+                }
+                else if(strcmp(optarg, "userpass") == 0)
+                {
+                    METHOD_PREFERED = METHOD_USERPASS;
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
                 break;
             }
             case 'd':
@@ -92,7 +151,7 @@ void handle_args(int argc, char** argv)
                 set_opt(OPT_BUFSIZE);
 
                 int v = strtol(optarg, NULL, 10);
-                if(v == 2 || v == 4 || v == 8 || v == 16  || v == 32 || v == 64)
+                if((v == 2 || v == 4 || v == 8 || v == 16  || v == 32 || v == 64) && errno != ERANGE)
                 {
                     BUFSIZE = (int)pow(2, 10+log2(v));
                 }
@@ -101,62 +160,13 @@ void handle_args(int argc, char** argv)
                     usage(name);
                     exit(-1);
                 }
-            }
-            case 'l':
-            {
-                set_opt(OPT_LOG);
-                if(!log_open())
-                    exit(-1);
-                break;
-            }
-            case 'p':
-            {
-                set_opt(OPT_PORT);
-
-                long tmp = strtol(optarg, NULL, 10);
-                if(tmp < 0 || 65535 < tmp || errno == ERANGE)
-                {
-                    usage(name);
-                    exit(-1);
-                }
-
-                PORT = (short)tmp;
-                break;
-            }
-            case 'c':
-            {
-                set_opt(OPT_MAX_CONNECTIONS);
-
-                MAX_CONNECTIONS = (int)strtol(optarg, NULL, 10);
-                if(MAX_CONNECTIONS <= 0 ||  errno == ERANGE)
-                {
-                    usage(name);
-                    exit(-1);
-                }
 
                 break;
             }
-            case 'm':
+            case 'h':
             {
-                set_opt(OPT_METHOD);
-
-                if(strcmp(optarg, "noauth") == 0)
-                {
-                    METHOD_PREFERED = METHOD_NOMETHOD;
-                    break;
-                }
-                else if(strcmp(optarg, "userpass") == 0)
-                {
-                    METHOD_PREFERED = METHOD_USERPASS;
-                    break;
-                }
-                else
-                {
-                    usage(name);
-                    exit(-1);
-                }
-
-                break;
+                usage(name);
+                exit(0);
             }
             case '?':
             {
@@ -167,16 +177,26 @@ void handle_args(int argc, char** argv)
     while(opt_char != -1);
 
     if(!is_opt_set(OPT_IP4) && !is_opt_set(OPT_IP6))
+    {
         set_opt(OPT_IP4);
+        set_opt(OPT_IP6);
+    }
 }
 
 
 void usage(char* name)
 {
     printf("Usage: %s [OPTION]... \n\n"
-           "-h, --help                          Print this usage guide \n"
-           "-4, --ip4                           Accept ipv4 clients [default]\n"
-           "-6, --ip6                           Accept ipv6 clients \n"
+           "-4, --ipv4                          Accept IPv4 connections\n"
+           "-6, --ipv6                          Accept IPv6 connections\n"
+           "                                    If IP version is not set, both ipv4 and ipv6 are assumed\n"
+           "-l, --log                            Enable logging to .csv file\n"
+           "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
+           "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
+           "-m, --method=NAME                   Authentication method used for clients\n"
+           "                                    Supported methods:\n"
+           "                                    noauth - no authentication [default]\n"
+           "                                    userpass - username and password\n"
            "-d, --decline=NUMBER                Decline requests that have a field set\n"
            "                                    To add multiple values, use option multiple times\n"
            "                                    1 - CONNECT command\n"
@@ -185,14 +205,9 @@ void usage(char* name)
            "                                    4 - IPv4 address\n"
            "                                    5 - IPv6 address\n"
            "                                    6 - Domain name\n"
-           "-l, --log                           Enable logging to .csv file\n"
            "-b, --bufsize=SIZE                  Set buffer size for TCP connections in kilobytes\n"
-           "                                    Recommended for advanced users only [default: 8]\n"
-           "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
-           "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
-           "-m, --method=NAME                   Authentication method used for clients [default: noauth]\n"
-           "                                    Supported methods:\n"
-           "                                    noauth - no authentication\n"
-           "                                    userpass - username and password\n", name);
+           "                                    2, 4, 8, 16, 32 or 64\n"
+           "                                    For advanced users only [default: 8]\n"
+           "-h, --help                          Print this usage guide \n", name);
 }
 
