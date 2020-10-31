@@ -8,6 +8,6 @@
 
 
 
-bool SOCKS_reply(fd_t, rep_t, atyp_t, const char*, const char*);
+bool SOCKS_reply(fd_t, reply_t*);
 
 #endif 

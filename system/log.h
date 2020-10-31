@@ -5,7 +5,7 @@
 #include "misc/defs.h"
 
 bool log_open();
-void log_write(log_entry_t);
-void log_fmt_entry(struct sockaddr_storage addr, char* req, log_entry_t* entry);
+void log_write(const log_entry_t*);
+void log_fmt_entry(const struct sockaddr_storage *addr, const request_t*, log_entry_t*);
 
 #endif 

@@ -3,6 +3,6 @@
 
 #include "misc/defs.h"
 
-void SOCKS_udp_associate(fd_t client, char* req);
+void SOCKS_udp_associate(fd_t, const request_t*);
 
 #endif 

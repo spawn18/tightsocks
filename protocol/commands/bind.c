@@ -2,11 +2,7 @@
 
 #include "misc/utils.h"
 
-void SOCKS_bind(fd_t client, char* req)
+void SOCKS_bind(fd_t client, const request_t *req)
 {
-    atyp_t atyp;
-    char* host;
-    char* port;
 
-    parse_req(req, &atyp, &host, &port);
 }

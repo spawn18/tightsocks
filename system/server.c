@@ -45,8 +45,8 @@ void* handle_client(void* arg)
 
         if(methodHandled)
         {
-            char req[REQ_LEN + 1];
-            if(SOCKS_handle_request(client, req))
+            request_t req;
+            if(SOCKS_handle_request(client, &req))
             {
                 if(is_opt_set(OPT_LOG))
                 {
@@ -56,14 +56,14 @@ void* handle_client(void* arg)
                     if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
                     {
                         log_entry_t entry;
-                        log_fmt_entry(addr, req, &entry);
-                        log_write(entry);
+                        log_fmt_entry(&addr, &req, &entry);
+                        log_write(&entry);
                     }
                 }
 
-                if (req[1] == CMD_CONNECT)   SOCKS_connect(client, req);
-                else if (req[1] == CMD_BIND) SOCKS_bind(client, req);
-                else                         SOCKS_udp_associate(client, req);
+                if (req.CMD == CMD_CONNECT)   SOCKS_connect(client, &req);
+                else if (req.CMD == CMD_BIND) SOCKS_bind(client, &req);
+                else                          SOCKS_udp_associate(client, &req);
             }
         }
     }

@@ -9,9 +9,9 @@ typedef int bool;
 #define SOCKS_VER 5
 #define HOST_LEN 255
 #define PORT_LEN 5
-#define REQ_LEN 261
+#define REQUEST_LEN 261
 #define AUTH_LEN 513
-#define REP_LEN 261
+#define REPLY_LEN 261
 #define METHODS_LEN 257
 #define LOG_ENTRY_LEN 1024
 #define CMD_LEN 13
@@ -85,5 +85,25 @@ typedef struct LOG_ENTRY_T
     char dstHost[HOST_LEN + 1];
     char dstPort[PORT_LEN + 1];
 } log_entry_t;
+
+typedef struct REPLY_T
+{
+    char VER;
+    rep_t REP;
+    char RSV;
+    atyp_t ATYP;
+    char BNDADDR[HOST_LEN + 1];
+    char BNDPORT[PORT_LEN + 1];
+} reply_t;
+
+typedef struct REQUEST_T
+{
+    char VER;
+    cmd_t CMD;
+    char RSV;
+    atyp_t ATYP;
+    char DSTADDR[HOST_LEN + 1];
+    char DSTPORT[PORT_LEN + 1];
+} request_t;
 
 #endif 

@@ -8,26 +8,7 @@
 #include <netdb.h>
 
 
-void fmt_addr(struct sockaddr_storage addr, char* host, char* port);
-
-
-static inline void parse_req(char* req, atyp_t* atyp, char** host, char** port)
-{
-    *atyp = (unsigned char)req[3];
-    *host = &req[4];
-    if(req[3] == ATYP_IPV4)
-    {
-        *port = &req[8];
-    }
-    else if(req[3] == ATYP_IPV6)
-    {
-        *port = &req[20];
-    }
-    else
-    {
-        *port = &req[3+req[4]];
-    }
-}
+void unload_addr(const struct sockaddr_storage *addr, char* host, char* port);
 
 
 #endif

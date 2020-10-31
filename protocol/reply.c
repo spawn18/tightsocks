@@ -4,28 +4,25 @@
 #include <string.h>
 
 
-bool SOCKS_reply(fd_t client, rep_t rtyp, atyp_t atyp, const char* host, const char* port)
+bool SOCKS_reply(fd_t client, reply_t *reply)
 {
-    char rep[REP_LEN + 1];
-    int repLen = 4;
+    char buf[REPLY_LEN + 1] = {0};
 
-    rep[0] = SOCKS_VER;
-    rep[1] = rtyp;
-    rep[2] = 0;
-    rep[3] = atyp;
+    buf[0] = reply->VER;
+    buf[1] = reply->REP;
+    buf[2] = reply->RSV;
+    buf[3] = reply->ATYP;
 
-    if(atyp == ATYP_IPV4)
+    if(reply->ATYP == ATYP_IPV4)
     {
-        memcpy(&rep[4], host, 4);
-        memcpy(&rep[8], port, 2);
-        repLen = 10;
+        memcpy(&buf[4], reply->BNDADDR, 4);
+        memcpy(&buf[8], reply->BNDPORT, 2);
     }
     else
     {
-        memcpy(&rep[4], host, 16);
-        memcpy(&rep[20],port, 2);
-        repLen = 22;
+        memcpy(&buf[4], reply->BNDADDR, 16);
+        memcpy(&buf[20], reply->BNDPORT, 2);
     }
 
-    return send_all(client, rep, repLen);
+    return send_all(client, buf, strlen(buf));
 }

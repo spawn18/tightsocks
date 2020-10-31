@@ -43,15 +43,15 @@ void log_close()
 }
 
 
-void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entry)
+void log_fmt_entry(const struct sockaddr_storage *srcAddr, const request_t *req, log_entry_t* entry)
 {
-    fmt_addr(srcAddr, entry->srcHost, entry->srcPort);
+    unload_addr(srcAddr, entry->srcHost, entry->srcPort);
 
-    if(req[1] == CMD_CONNECT)
+    if(req->CMD == CMD_CONNECT)
     {
         strcpy(entry->command, "CONNECT");
     }
-    else if(req[2] == CMD_BIND)
+    else if(req->CMD == CMD_BIND)
     {
         strcpy(entry->command, "BIND");
     }
@@ -60,46 +60,42 @@ void log_fmt_entry(struct sockaddr_storage srcAddr, char* req, log_entry_t* entr
         strcpy(entry->command, "\"UDP ASSOCIATE\"");
     }
 
-    atyp_t atyp;
-    char *host;
-    char *port;
 
-    parse_req(req, &atyp, &host, &port);
-
-
-    if(atyp == ATYP_DOMAINNAME)
+    if(req->ATYP == ATYP_DOMAINNAME)
     {
         strcpy(entry->addrType, "DOMAINNAME");
-        strncpy(entry->dstHost, host+1, *host);
-        entry->dstHost[*host] = '\0';
+        strncpy(entry->dstHost, &req->DSTADDR[1], req->DSTADDR[0]);
+        entry->dstHost[req->DSTADDR[0]] = '\0';
     }
     else
     {
         struct sockaddr_storage dstAddr;
 
-        if(atyp == ATYP_IPV4)
+        if(req->ATYP == ATYP_IPV4)
         {
             strcpy(entry->addrType, "IPV4");
 
             dstAddr.ss_family = AF_INET;
-            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_addr.s_addr, host, 4);
-            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_port, port, 2);
-            fmt_addr(dstAddr, entry->dstHost, entry->dstPort);
+            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_addr.s_addr, req->DSTADDR, 4);
+            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_port, req->DSTPORT, 2);
+
+            unload_addr(&dstAddr, entry->dstHost, entry->dstPort);
         }
-        else if(atyp == ATYP_IPV6)
+        else if(req->ATYP == ATYP_IPV6)
         {
             strcpy(entry->addrType, "IPV6");
 
             dstAddr.ss_family = AF_INET6;
-            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, host, 16);
-            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_port, port, 2);
-            fmt_addr(dstAddr, entry->dstHost, entry->dstPort);
+            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, req->DSTADDR, 16);
+            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_port, req->DSTPORT, 2);
+
+            unload_addr(&dstAddr, entry->dstHost, entry->dstPort);
         }
     }
 }
 
 
-void log_write(log_entry_t entry)
+void log_write(const log_entry_t *entry)
 {
     char date[DATE_LEN + 1];
     get_date(date);
@@ -113,17 +109,17 @@ void log_write(log_entry_t entry)
     strcat(s, ",");
     strcat(s, time);
     strcat(s, ",");
-    strcat(s, entry.srcHost);
+    strcat(s, entry->srcHost);
     strcat(s, ",");
-    strcat(s, entry.srcPort);
+    strcat(s, entry->srcPort);
     strcat(s, ",");
-    strcat(s, entry.command);
+    strcat(s, entry->command);
     strcat(s, ",");
-    strcat(s, entry.addrType);
+    strcat(s, entry->addrType);
     strcat(s, ",");
-    strcat(s, entry.dstHost);
+    strcat(s, entry->dstHost);
     strcat(s, ",");
-    strcat(s, entry.dstPort);
+    strcat(s, entry->dstPort);
     strcat(s, "\n");
 
     pthread_mutex_lock(&mut);
