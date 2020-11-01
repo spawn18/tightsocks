@@ -31,7 +31,6 @@ void* handle_client(void* arg)
     if(SOCKS_exchange_methods(client))
     {
         bool methodHandled = FALSE;
-
         switch(METHOD_PREFERED)
         {
             case METHOD_NOAUTH:

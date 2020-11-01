@@ -13,13 +13,14 @@
 #include <math.h>
 
 
-struct option long_options[] = {
+struct option long_options[] ={
         {"ipv4", 0, 0, '4'},
         {"ipv6", 0, 0, '6'},
         {"log", 0, 0, 'l'},
         {"port", 1, 0, 'p'},
         {"max-connections", 1, 0, 'c'},
         {"method", 1, 0, 'm'},
+        {"firewall", 0, 0, 'f'},
         {"decline", 1, 0, 'd'},
         {"bufsize", 1, 0, 'b'},
         {"help", 0, 0, 'h'},
@@ -110,6 +111,11 @@ void handle_args(int argc, char** argv)
 
                 break;
             }
+            case 'f':
+            {
+                // TODO
+                break;
+            }
             case 'd':
             {
                 set_opt(OPT_DECLINE);
@@ -190,21 +196,27 @@ void usage(char* name)
            "-4, --ipv4                          Accept IPv4 connections\n"
            "-6, --ipv6                          Accept IPv6 connections\n"
            "                                    If IP version is not set, both ipv4 and ipv6 are assumed\n"
-           "-l, --log                            Enable logging to .csv file\n"
+           "-l, --log                           Enable logging to .csv file\n"
            "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
            "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
            "-m, --method=NAME                   Authentication method used for clients\n"
            "                                    Supported methods:\n"
-           "                                    noauth - no authentication [default]\n"
-           "                                    userpass - username and password\n"
+           "                                    * noauth - no authentication [default]\n"
+           "                                    * userpass - username and password\n"
+           "                                      for userpass there needs a users.txt file to exist\n"
+           "                                      in the same folder as executable\n"
+           "-f, --firewall                      Enable firewall for requests\n"
+           "                                    Rules need to be located in firewall.txt file\n"
+           "                                    Each line denotes one address to be blocked out\n"
+           "                                    No additional signatures must be added\n"
            "-d, --decline=NUMBER                Decline requests that have a field set\n"
            "                                    To add multiple values, use option multiple times\n"
-           "                                    1 - CONNECT command\n"
-           "                                    2 - BIND command\n"
-           "                                    3 - UDP ASSOCIATE command\n"
-           "                                    4 - IPv4 address\n"
-           "                                    5 - IPv6 address\n"
-           "                                    6 - Domain name\n"
+           "                                    * 1 - CONNECT command\n"
+           "                                    * 2 - BIND command\n"
+           "                                    * 3 - UDP ASSOCIATE command\n"
+           "                                    * 4 - IPv4 address\n"
+           "                                    * 5 - IPv6 address\n"
+           "                                    * 6 - Domain name\n"
            "-b, --bufsize=SIZE                  Set buffer size for TCP connections in kilobytes\n"
            "                                    2, 4, 8, 16, 32 or 64\n"
            "                                    For advanced users only [default: 8]\n"

@@ -11,7 +11,7 @@ bool SOCKS_handle_request(fd_t client, request_t *req)
 {
     char buf[REQUEST_LEN + 1];
 
-    if(recv_all(client, buf, 4) > 0)
+    if(recv_all(client, buf,  4) > 0)
     {
         req->VER = buf[0];
         req->CMD = buf[1];

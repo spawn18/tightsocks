@@ -19,14 +19,14 @@ typedef int bool;
 #define DATE_LEN 255
 #define TIME_LEN 255
 
-typedef enum CMD
+typedef enum CMD_T
 {
     CMD_CONNECT = 1,
     CMD_BIND,
     CMD_UDP_ASSOCIATE,
 } cmd_t;
 
-typedef enum METHODS
+typedef enum METHOD_T
 {
     METHOD_NOAUTH = 0,
     METHOD_GSSAPI,
@@ -34,7 +34,7 @@ typedef enum METHODS
     METHOD_NOMETHOD = 0xFF,
 } method_t;
 
-typedef enum REP
+typedef enum REP_T
 {
     REP_SUCCEEDED = 0,
     REP_GENERAL_FAILURE,
@@ -47,14 +47,14 @@ typedef enum REP
     REP_ADDRESS_TYPE_NOT_SUPPORTED,
 } rep_t;
 
-typedef enum ATYP
+typedef enum ATYP_T
 {
     ATYP_IPV4 = 1,
     ATYP_DOMAINNAME = 3,
     ATYP_IPV6,
 } atyp_t;
 
-typedef enum OPTIONS
+typedef enum OPTION_T
 {
     OPT_IP6,
     OPT_IP4,
@@ -66,7 +66,7 @@ typedef enum OPTIONS
     OPT_BUFSIZE
 } option_t;
 
-typedef enum DECLINE_FIELDS
+typedef enum DECLINE_T
 {
     DECLINE_CONNECT = 1,
     DECLINE_BIND,
@@ -88,22 +88,24 @@ typedef struct LOG_ENTRY_T
 
 typedef struct REPLY_T
 {
-    char VER;
-    rep_t REP;
-    char RSV;
-    atyp_t ATYP;
-    char BNDADDR[HOST_LEN + 1];
-    char BNDPORT[PORT_LEN + 1];
+    char    VER;
+    rep_t   REP;
+    char    RSV;
+    atyp_t  ATYP;
+    char    BNDADDR[HOST_LEN + 1];
+    char    BNDPORT[PORT_LEN + 1];
 } reply_t;
 
 typedef struct REQUEST_T
 {
-    char VER;
-    cmd_t CMD;
-    char RSV;
-    atyp_t ATYP;
-    char DSTADDR[HOST_LEN + 1];
-    char DSTPORT[PORT_LEN + 1];
+    char    VER;
+    cmd_t   CMD;
+    char    RSV;
+    atyp_t  ATYP;
+    char    DSTADDR[HOST_LEN + 1];
+    char    DSTPORT[PORT_LEN + 1];
 } request_t;
+
+
 
 #endif 
