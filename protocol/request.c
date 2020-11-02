@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-bool SOCKS_handle_request(fd_t client, request_t *req)
+bool SOCKS_handle_request(socket_t client, request_t *req)
 {
     char buf[REQUEST_LEN + 1];
 

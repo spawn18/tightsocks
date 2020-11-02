@@ -2,7 +2,7 @@
 
 #include "misc/utils.h"
 
-void SOCKS_bind(fd_t client, const request_t *req)
+void SOCKS_bind(socket_t client, const request_t *req)
 {
 
 }

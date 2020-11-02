@@ -5,7 +5,7 @@
 
 
 
-bool SOCKS_exchange_methods(fd_t client)
+bool SOCKS_exchange_methods(socket_t client)
 {
     char methods[METHODS_LEN + 1];
 

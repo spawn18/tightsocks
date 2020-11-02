@@ -26,20 +26,13 @@ static pthread_mutex_t mut;
 
 void* handle_client(void* arg)
 {
-    fd_t client = *(fd_t*)arg;
+    socket_t client = *(socket_t*)arg;
 
     if(SOCKS_exchange_methods(client))
     {
-        bool methodHandled = FALSE;
-        switch(METHOD_PREFERED)
+        if(is_opt_set(OPT_USERPASS))
         {
-            case METHOD_NOAUTH:
-                methodHandled = TRUE;
-                break;
-
-            case METHOD_USERPASS:
-                methodHandled = handle_method_userpass(client);
-                break;
+            handle_method_userpass(client);
         }
 
         if(methodHandled)
@@ -81,8 +74,8 @@ void* handle_client(void* arg)
 
 void serve()
 {
-    fd_t server4;
-    fd_t server6;
+    socket_t server4;
+    socket_t server6;
 
     if(is_opt_set(OPT_IP4))
     {

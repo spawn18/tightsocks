@@ -5,17 +5,48 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
-static FILE* fwFile = NULL;
-static pthread_mutex_t mut;
+static int rulesLen;
+static fw_rule_t* fw_rules = NULL;
 
-bool fw_open()
+
+bool fw_init()
 {
-    fwFile = fopen("blacklist.txt", "r");
-    return (fwFile != NULL) ? TRUE : FALSE;
+    if(fw_rules == NULL)
+    {
+        rulesLen = 10;
+        fw_rules = malloc(sizeof(fw_rule_t) * rulesLen);
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
-bool fw_find(char* entry)
-{
 
+void fw_add(const fw_rule_t *rule)
+{
+    static int i = 0;
+
+    if(i == rulesLen)
+    {
+        rulesLen *= 2;
+        fw_rules = realloc(fw_rules, rulesLen);
+    }
+
+    fw_rules[i] = *rule;
+    i++;
+}
+
+bool fw_find(const fw_rule_t *rule)
+{
+    for(int i = 0; i < rulesLen; i++)
+    {
+        if(fw_rules[i].cmd == rule->cmd && strcmp(fw_rules[i].host, rule->host) == 0)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }

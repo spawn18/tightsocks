@@ -1,11 +1,11 @@
 #include "network/io.h"
-
+#include "system/users.h"
 
 #include <stdio.h>
 #include <string.h>
 
 
-bool handle_method_userpass(fd_t client)
+bool handle_method_userpass(socket_t client)
 {
     char auth[AUTH_LEN + 1];
     recv_all(client, auth, 2);
@@ -23,26 +23,11 @@ bool handle_method_userpass(fd_t client)
         char* pass = auth+3+userLen;
         char passLen = auth[2+userLen];
 
-        FILE* file = fopen("users.conf", "r");
+        user_t u = {'\0'};
+        strncpy(u.username, user, userLen);
+        strncpy(u.password, pass, passLen);
 
-        if(file != NULL)
-        {
-            char entry[512];
-
-            while(fgets(entry, 512, file) != NULL)
-            {
-                if(strncmp(&entry[0], user, userLen) == 0)
-                {
-                    if(strncmp(&entry[userLen+1], pass, passLen) == 0)
-                    {
-                        success = TRUE;
-                        break;
-                    }
-                }
-            }
-
-            fclose(file);
-        }
+        if(users_find(&u)) success = TRUE;
     }
 
     char code = success ? 0 : 1;

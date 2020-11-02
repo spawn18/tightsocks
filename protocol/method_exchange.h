@@ -3,6 +3,16 @@
 
 #include "misc/defs.h"
 
-bool SOCKS_exchange_methods(fd_t client);
+#define METHODS_LEN 257
+
+typedef enum METHOD_T
+{
+    METHOD_NOAUTH = 0,
+    METHOD_GSSAPI,
+    METHOD_USERPASS ,
+    METHOD_NOMETHOD = 0xFF,
+} method_t;
+
+bool SOCKS_exchange_methods(socket_t client);
 
 #endif 

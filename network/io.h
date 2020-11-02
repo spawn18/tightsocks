@@ -6,8 +6,8 @@
 
 #include <stddef.h>
 
-bool recv_all(fd_t, char*, size_t);
-bool send_all(fd_t, const char*, size_t);
-void handle_io(fd_t, fd_t);
+bool recv_all(socket_t, char*, size_t);
+bool send_all(socket_t, const char*, size_t);
+void handle_io(socket_t, socket_t);
 
 #endif

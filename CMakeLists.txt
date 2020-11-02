@@ -27,7 +27,7 @@ add_executable(Ace
         misc/utils.c
         misc/utils.h
         misc/chrono.c
-        misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h system/firewall.c system/firewall.h)
+        misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h system/firewall.c system/firewall.h system/users.c system/users.h)
 
 target_link_libraries(Ace pthread m)
 target_include_directories(Ace PUBLIC .)

@@ -12,9 +12,9 @@
 #include <poll.h>
 
 
-void SOCKS_connect(fd_t client, const request_t *req)
+void SOCKS_connect(socket_t client, const request_t *req)
 {
-    fd_t host;
+    socket_t host;
     bool done = FALSE;
 
     reply_t reply;
