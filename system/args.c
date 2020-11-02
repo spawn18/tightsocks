@@ -113,7 +113,8 @@ void handle_args(int argc, char** argv)
             }
             case 'f':
             {
-                // TODO
+                set_opt(OPT_FIREWALL);
+
                 break;
             }
             case 'd':
@@ -196,27 +197,31 @@ void usage(char* name)
            "-4, --ipv4                          Accept IPv4 connections\n"
            "-6, --ipv6                          Accept IPv6 connections\n"
            "                                    If IP version is not set, both ipv4 and ipv6 are assumed\n"
-           "-l, --log                           Enable logging to .csv file\n"
+           "-l, --log[=PATH]                    Enable logging to .csv file\n"
+           "                                    If PATH is not set, then the file is located\n"
+           "                                    in the same folder as executable\n"
            "-p, --port=NUMBER                   Set server port manually [default: 1080]\n"
            "-c, --max-connections=LIMIT         Limit for connections [default: 1024]\n"
            "-m, --method=NAME                   Authentication method used for clients\n"
            "                                    Supported methods:\n"
            "                                    * noauth - no authentication [default]\n"
            "                                    * userpass - username and password\n"
-           "                                      for userpass there needs a users.txt file to exist\n"
-           "                                      in the same folder as executable\n"
-           "-f, --firewall                      Enable firewall for requests\n"
-           "                                    Rules need to be located in firewall.txt file\n"
-           "                                    Each line denotes one address to be blocked out\n"
-           "                                    No additional signatures must be added\n"
+           "                                      for userpass there needs to be at least one user"
+           "                                      set with -u/--user option\n"
+           "-u, --user={USERNAME PASSWORD}      Add user to authenticate in userpass method\n"
+           "                                    Is only valid if method set to userpass\n"
+           "                                    USERNAME and PASSWORD must be delimited by one whitespace\n"
+           "                                    and have a length between 0 and 255 \n"
+           "-f, --firewall=ADDRESS              Blacklist IP address used in requests\n"
+           "                                    ADDRESS must be a valid IP address, and not a domain name\n"
            "-d, --decline=NUMBER                Decline requests that have a field set\n"
            "                                    To add multiple values, use option multiple times\n"
-           "                                    * 1 - CONNECT command\n"
-           "                                    * 2 - BIND command\n"
-           "                                    * 3 - UDP ASSOCIATE command\n"
-           "                                    * 4 - IPv4 address\n"
-           "                                    * 5 - IPv6 address\n"
-           "                                    * 6 - Domain name\n"
+           "                                    * 1 - CMD is CONNECT\n"
+           "                                    * 2 - CMD is BIND\n"
+           "                                    * 3 - CMD is UDPASSOCIATE\n"
+           "                                    * 4 - ATYP is IPV4\n"
+           "                                    * 5 - ATYP is IPV6\n"
+           "                                    * 6 - ATYP is DOMAINNAME\n"
            "-b, --bufsize=SIZE                  Set buffer size for TCP connections in kilobytes\n"
            "                                    2, 4, 8, 16, 32 or 64\n"
            "                                    For advanced users only [default: 8]\n"

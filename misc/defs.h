@@ -61,6 +61,7 @@ typedef enum OPTION_T
     OPT_PORT,
     OPT_MAX_CONNECTIONS,
     OPT_METHOD,
+    OPT_FIREWALL,
     OPT_LOG,
     OPT_DECLINE,
     OPT_BUFSIZE
