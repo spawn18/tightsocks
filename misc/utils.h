@@ -10,5 +10,4 @@
 
 void unload_addr(const struct sockaddr_storage *addr, char* host, char* port);
 
-
 #endif

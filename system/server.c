@@ -6,6 +6,8 @@
 #include "protocol/commands/connect.h"
 #include "protocol/commands/bind.h"
 #include "protocol/commands/udp_associate.h"
+#include "protocol/method_exchange.h"
+#include "protocol/methods/userpass.h"
 #include "system/options.h"
 
 
@@ -28,38 +30,31 @@ void* handle_client(void* arg)
 {
     socket_t client = *(socket_t*)arg;
 
-    if(SOCKS_exchange_methods(client))
+    if(SOCKS_handle_method(client))
     {
-        if(is_opt_set(OPT_USERPASS))
+        request_t req = {0};
+        if(SOCKS_handle_request(client, &req))
         {
-            handle_method_userpass(client);
-        }
-
-        if(methodHandled)
-        {
-            request_t req;
-            if(SOCKS_handle_request(client, &req))
+            if(is_opt_set(OPT_LOG))
             {
-                if(is_opt_set(OPT_LOG))
+                struct sockaddr_storage addr;
+                socklen_t len = sizeof(addr);
+
+                if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
                 {
-                    struct sockaddr_storage addr;
-                    socklen_t len = sizeof(addr);
-
-                    if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
-                    {
-                        log_entry_t entry;
-                        log_fmt_entry(&addr, &req, &entry);
-                        log_write(&entry);
-                    }
+                    log_entry_t entry = {0};
+                    log_fmt_entry(&addr, &req, &entry);
+                    log_write(&entry);
                 }
-
-                if (req.CMD == CMD_CONNECT)   SOCKS_connect(client, &req);
-                else if (req.CMD == CMD_BIND) SOCKS_bind(client, &req);
-                else                          SOCKS_udp_associate(client, &req);
             }
+
+            if      (req.CMD == CMD_CONNECT)        SOCKS_connect(client, &req);
+            else if (req.CMD == CMD_BIND)           SOCKS_bind(client, &req);
+            else if (req.CMD == CMD_UDP_ASSOCIATE)  SOCKS_udp_associate(client, &req);
         }
     }
 
+cleanup:;
     close(client);
 
     pthread_mutex_lock(&mut);
@@ -67,7 +62,6 @@ void* handle_client(void* arg)
     pthread_mutex_unlock(&mut);
 
     free((int*)arg);
-
     pthread_exit(0);
 }
 

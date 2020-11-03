@@ -59,7 +59,7 @@ void handle_io(socket_t s1, socket_t s2)
             {
                 if(fds[1].revents & POLLOUT)
                 {
-                    int b = recv(fds[0].fd, buf, BUFSIZE, 0);
+                    int b = recv(fds[0].fd, buf, 8192, 0);
                     if(b > 0) send_all(fds[1].fd, buf, b);
                     else break;
                 }
@@ -69,7 +69,7 @@ void handle_io(socket_t s1, socket_t s2)
             {
                 if(fds[0].revents & POLLOUT)
                 {
-                    int b = recv(fds[1].fd, buf, BUFSIZE, 0);
+                    int b = recv(fds[1].fd, buf, 8192, 0);
                     if(b > 0) send_all(fds[0].fd, buf, b);
                     else break;
                 }

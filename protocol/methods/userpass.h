@@ -3,8 +3,6 @@
 
 #include "misc/defs.h"
 
-#define AUTH_LEN 513
-
-bool handle_method_userpass(socket_t client);
+bool method_userpass(socket_t client);
 
 #endif

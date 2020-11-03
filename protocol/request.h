@@ -6,7 +6,19 @@
 
 #include <sys/socket.h>
 
-#define REQUEST_LEN 261
+typedef enum CMD_T
+{
+    CMD_CONNECT = 1,
+    CMD_BIND,
+    CMD_UDP_ASSOCIATE,
+} cmd_t;
+
+typedef enum ATYP_T
+{
+    ATYP_IPV4 = 1,
+    ATYP_DOMAINNAME = 3,
+    ATYP_IPV6,
+} atyp_t;
 
 typedef struct REQUEST_T
 {
@@ -14,8 +26,8 @@ typedef struct REQUEST_T
     cmd_t   CMD;
     char    RSV;
     atyp_t  ATYP;
-    char    DSTADDR[HOST_LEN + 1];
-    char    DSTPORT[PORT_LEN + 1];
+    char    DSTADDR[255];
+    char    DSTPORT[2];
 } request_t;
 
 

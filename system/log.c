@@ -12,11 +12,19 @@
 static FILE* logFile = NULL;
 static pthread_mutex_t mut;
 
-bool log_open()
+bool log_open(char* path)
 {
     char* desc = "date,time,\"source host\",\"source port\",command,\"address type\",\"destination host\",\"destination port\"\n";
 
-    logFile = fopen("log.csv", "r+");
+    if(path)
+    {
+        logFile = fopen(path, "r+");
+    }
+    else
+    {
+        logFile = fopen("log.csv", "r+");
+    }
+
 
     if(logFile == NULL)
     {

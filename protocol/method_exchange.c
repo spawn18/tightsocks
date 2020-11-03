@@ -1,3 +1,4 @@
+#include <protocol/methods/userpass.h>
 #include "method_exchange.h"
 #include "network/io.h"
 #include "request.h"
@@ -5,32 +6,42 @@
 
 
 
-bool SOCKS_exchange_methods(socket_t client)
+bool SOCKS_handle_methods(socket_t client)
 {
-    char methods[METHODS_LEN + 1];
+    char buf[BUFSIZE + 1];
 
-    if(recv_all(client, methods, 2) > 0)
+    if(recv_all(client, buf, 2) > 0)
     {
-        if(methods[0] == SOCKS_VER && methods[1] != 0)
+        if(buf[0] == SOCKS_VER && buf[1] != 0)
         {
-            if(recv_all(client, methods+2, methods[1]) > 0)
+            if(recv_all(client, buf+2, buf[1]) > 0)
             {
-                method_t m = METHOD_NOMETHOD;
+                method_t metPref = !is_opt_set(OPT_USERPASS) ? MET_NOAUTH : MET_USERPASS;
+                method_t metFinal = MET_NOMETHOD;
 
-                for (int i = 0; i < methods[1]; i++)
+                for (int i = 0; i < buf[1]; i++)
                 {
-                    if (methods[2+i] == METHOD_PREFERED)
+                    if (buf[2+i] == metPref)
                     {
-                        m = METHOD_PREFERED;
+                        metFinal = metPref;
                         break;
                     }
                 }
 
-                char rep[2] = {SOCKS_VER, (char)m};
+                char rep[2] = {SOCKS_VER, metFinal};
                 send_all(client, rep, 2);
 
-                if(m != METHOD_NOMETHOD) return TRUE;
-                else return FALSE;
+                if(metFinal != MET_NOMETHOD)
+                {
+                    if(metFinal == MET_NOAUTH)
+                    {
+                        return TRUE;
+                    }
+                    if(metFinal == MET_USERPASS)
+                    {
+                        return method_userpass(client);
+                    }
+                }
             }
         }
     }
