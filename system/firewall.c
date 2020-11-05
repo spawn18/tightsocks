@@ -40,7 +40,8 @@ bool fw_find(const fw_rule_t *rule)
 {
     for(int i = 0; i < rulesLen; i++)
     {
-        if(fw_rules[i].cmd == rule->cmd && strcmp(fw_rules[i].host, rule->host) == 0)
+        if( (strcmp(fw_rules[i].host, rule->host) == 0 || strcmp(fw_rules[i].host, "*") == 0) &&
+            (strcmp(fw_rules[i].port, rule->port) == 0 || strcmp(fw_rules[i].port, "*") == 0))
         {
             return TRUE;
         }

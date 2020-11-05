@@ -1,12 +1,11 @@
 #include <protocol/methods/userpass.h>
 #include "method_exchange.h"
 #include "network/io.h"
-#include "request.h"
 #include "system/options.h"
 
 
 
-bool SOCKS_handle_methods(socket_t client)
+bool SOCKS_handle_method(socket_t client)
 {
     char buf[BUFSIZE + 1];
 

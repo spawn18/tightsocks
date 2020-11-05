@@ -54,7 +54,6 @@ void* handle_client(void* arg)
         }
     }
 
-cleanup:;
     close(client);
 
     pthread_mutex_lock(&mut);
@@ -127,6 +126,9 @@ void serve()
         setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
     }
 
+    socket_t server = server4;
+    option_t opt = OPT_IP4;
+
     while(1)
     {
         if (totalConns > MAX_CONNECTIONS)
@@ -134,9 +136,9 @@ void serve()
             continue;
         }
 
-        if(is_opt_set(OPT_IP4))
+        if(is_opt_set(opt))
         {
-            int client = accept(server4, NULL, NULL);
+            int client = accept(server, NULL, NULL);
             if(client != -1)
             {
                 pthread_mutex_lock(&mut);
@@ -153,23 +155,7 @@ void serve()
             }
         }
 
-        if(is_opt_set(OPT_IP6))
-        {
-            int client = accept(server6, NULL, NULL);
-            if(client != -1)
-            {
-                pthread_mutex_lock(&mut);
-                ++totalConns;
-                pthread_mutex_unlock(&mut);
-
-                pthread_t thread = 0;
-                int* clientArg = malloc(sizeof(client));
-                *clientArg = client;
-                if (pthread_create(&thread, NULL, handle_client, clientArg) == 0)
-                {
-                    pthread_detach(thread);
-                }
-            }
-        }
+        opt    = (opt == OPT_IP4)    ? OPT_IP6  : OPT_IP4;
+        server = (server == server4) ? server6  : server4;
     }
 }

@@ -6,7 +6,7 @@
 
 bool SOCKS_reply(socket_t client, reply_t *reply)
 {
-    char buf[REPLY_LEN + 1] = {0};
+    char buf[BUFSIZE + 1] = {0};
 
     buf[0] = reply->VER;
     buf[1] = reply->REP;

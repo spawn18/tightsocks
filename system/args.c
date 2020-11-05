@@ -134,26 +134,15 @@ void handle_args(int argc, char** argv)
             {
                 set_opt(OPT_FIREWALL);
 
-                char* cmd = strtok(optarg, " ");
-                char* host = strtok(NULL, " ");
+                char* host = strtok(optarg, " ");
+                char* port = strtok(NULL, " ");
 
-                if(cmd != NULL && host != NULL && strlen(host) <= 255)
+                if(host != NULL && port != NULL && strlen(host) <= 255)
                 {
                     fw_init();
-
-                    fw_rule_t rule;
-
-                    if(strcmp(cmd, "CONNECT") == 0) rule.cmd = CMD_CONNECT;
-                    else if(strcmp(cmd, "BIND") == 0) rule.cmd = CMD_BIND;
-                    else if(strcmp(cmd, "UDP_ASSOCIATE") == 0) rule.cmd = CMD_UDP_ASSOCIATE;
-                    else
-                    {
-                        usage(name);
-                        exit(-1);
-                    }
-
+                    fw_rule_t rule = {0};
                     strcpy(rule.host, host);
-
+                    strcpy(rule.port, port);
                     fw_add(&rule);
                 }
                 else
@@ -188,19 +177,18 @@ void handle_args(int argc, char** argv)
 void usage(char* name)
 {
     printf("Usage: %s [OPTION]... \n\n"
-           "  -4, --ipv4                          accept IPv4 connections\n"
-           "  -6, --ipv6                          accept IPv6 connections\n"
-           "                                      if unset, both are assumed\n"
-           "  -l, --log[=PATH]                    enable logging to .csv file\n"
-           "  -p, --port=NUMBER                   set server port [default: 1080]\n"
-           "  -c, --max-connections=LIMIT         limit for connections [default: 1024]\n"
-           "  -u, --user=\"USERNAME PASSWORD\"      use username and password authentication for clients\n"
-           "                                      USERNAME and PASSWORD must have\n"
-           "                                      a length between 0 and 255\n"
-           "                                      multiple users are allowed\n"
-           "  -f, --firewall=\"CMD HOST\"           deny requests with a rule set\n"
-           "                                      CMD is CONNECT, BIND or UDP_ASSOCIATE\n"
-           "                                      HOST can be a IPv4 or IPv6 address, FQDN or * for any host\n"
-           "  -h, --help                          print this usage guide \n", name);
+           "  -4, --ipv4                                accept IPv4 connections\n"
+           "  -6, --ipv6                                accept IPv6 connections\n"
+           "                                            if unset, both are assumed\n"
+           "  -l, --log[=PATH]                          enable logging to .csv file\n"
+           "  -p, --port=NUMBER                         set server port [default: 1080]\n"
+           "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
+           "  -u, --user=\"USERNAME PASSWORD\"          authenticate with username and password\n"
+           "                                            USERNAME and PASSWORD must have\n"
+           "                                            a length between 0 and 255\n"
+           "  -f, --firewall=\"HOST PORT\"              deny connections and datagrams to HOST and PORT\n"
+           "                                            HOST can be an IPv4, IPv6 or FQDN\n"
+           "                                            PORT must be in range of 0 to 65535\n"
+           "  -h, --help                                print this usage guide \n", name);
 }
 
