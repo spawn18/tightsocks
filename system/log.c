@@ -22,7 +22,6 @@ bool log_open(char* path)
         logFile = fopen("log.csv", "r+");
     }
 
-
     if(logFile == NULL)
     {
         logFile = fopen("log.csv", "a");
@@ -41,10 +40,7 @@ bool log_open(char* path)
 
 void log_close()
 {
-    if(logFile != NULL)
-    {
-        fclose(logFile);
-    }
+    if(logFile != NULL) fclose(logFile);
 }
 
 void log_write(const log_entry_t *entry)
@@ -73,8 +69,6 @@ void log_write(const log_entry_t *entry)
     strcat(str, ",");
     strcat(str, entry->dstPort);
     strcat(str, "\n");
-
-    printf("log: %s\n", str);
 
     pthread_mutex_lock(&mut);
     fputs(str, logFile);
