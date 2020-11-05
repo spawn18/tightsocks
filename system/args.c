@@ -183,10 +183,10 @@ void usage(char* name)
            "  -l, --log[=PATH]                          enable logging to .csv file\n"
            "  -p, --port=NUMBER                         set server port [default: 1080]\n"
            "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
-           "  -u, --user=\"USERNAME PASSWORD\"          authenticate with username and password\n"
+           "  -u, --user=\"USERNAME PASSWORD\"            authenticate with username and password\n"
            "                                            USERNAME and PASSWORD must have\n"
            "                                            a length between 0 and 255\n"
-           "  -f, --firewall=\"HOST PORT\"              deny connections and datagrams to HOST and PORT\n"
+           "  -f, --firewall=\"HOST PORT\"                deny connections and datagrams to HOST and PORT\n"
            "                                            HOST can be an IPv4, IPv6 or FQDN\n"
            "                                            PORT must be in range of 0 to 65535\n"
            "  -h, --help                                print this usage guide \n", name);
