@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <sys/socket.h>
 #include <poll.h>
+#include <stdio.h>
 
 bool send_all(socket_t s, const char* buf, size_t len)
 {

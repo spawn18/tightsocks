@@ -16,15 +16,14 @@
 void SOCKS_connect(socket_t client, const request_t *req)
 {
     socket_t host;
-    bool done = FALSE;
 
-    reply_t reply;
-    reply.REP = REP_GENERAL_FAILURE;
+    reply_t reply = {0};
+    reply.VER = SOCKS_VER;
 
     if(req->ATYP == ATYP_DOMAINNAME)
     {
         struct addrinfo gaiInfo;
-        struct addrinfo* res;
+        struct addrinfo* res = NULL;
 
         memset(&gaiInfo, 0, sizeof(struct addrinfo));
 
@@ -48,12 +47,12 @@ void SOCKS_connect(socket_t client, const request_t *req)
 
                 if(connect(host, p_res->ai_addr, p_res->ai_addrlen) == 0)
                 {
-                    done = TRUE;
+                    reply.REP = REP_SUCCEEDED;
                     break;
                 }
                 else
                 {
-                    if      (errno == EHOSTUNREACH) reply.REP= REP_HOST_UNREACHABLE;
+                    if      (errno == EHOSTUNREACH) reply.REP = REP_HOST_UNREACHABLE;
                     else if (errno == ENETUNREACH)  reply.REP = REP_NETWORK_UNREACHABLE;
                     else if (errno == ECONNREFUSED) reply.REP = REP_CONNECTION_REFUSED;
                 }
@@ -62,6 +61,10 @@ void SOCKS_connect(socket_t client, const request_t *req)
             }
 
             freeaddrinfo(res);
+        }
+        else
+        {
+            reply.REP = REP_GENERAL_FAILURE;
         }
     }
     else
@@ -89,7 +92,7 @@ void SOCKS_connect(socket_t client, const request_t *req)
         {
             if(connect(host, (struct sockaddr*)&addr, sizeof(addr)) == 0)
             {
-                done = TRUE;
+                reply.REP = REP_SUCCEEDED;
             }
             else
             {
@@ -101,7 +104,7 @@ void SOCKS_connect(socket_t client, const request_t *req)
     }
 
 
-    if(done)
+    if(reply.REP == REP_SUCCEEDED)
     {
         struct sockaddr_storage addr;
         socklen_t addrLen = sizeof(addr);
@@ -132,4 +135,6 @@ void SOCKS_connect(socket_t client, const request_t *req)
     {
         SOCKS_reply(client, &reply);
     }
+
+
 }

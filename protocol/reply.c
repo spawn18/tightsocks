@@ -7,6 +7,7 @@
 bool SOCKS_reply(socket_t client, reply_t *reply)
 {
     char buf[BUFSIZE + 1] = {0};
+    int size = 4;
 
     buf[0] = reply->VER;
     buf[1] = reply->REP;
@@ -17,12 +18,14 @@ bool SOCKS_reply(socket_t client, reply_t *reply)
     {
         memcpy(&buf[4], reply->BNDADDR, 4);
         memcpy(&buf[8], reply->BNDPORT, 2);
+        size += 6;
     }
     else
     {
         memcpy(&buf[4], reply->BNDADDR, 16);
         memcpy(&buf[20], reply->BNDPORT, 2);
+        size += 18;
     }
 
-    return send_all(client, buf, strlen(buf));
+    return send_all(client, buf, size);
 }
