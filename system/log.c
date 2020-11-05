@@ -111,7 +111,7 @@ void log_write(const log_entry_t *entry)
     char time[TIME_LEN + 1] = {0};
     get_time(time);
 
-    char str[BUFSIZE + 1];
+    char str[BUFSIZE + 1] = {0};
 
     strcat(str, date);
     strcat(str, ",");
@@ -129,6 +129,8 @@ void log_write(const log_entry_t *entry)
     strcat(str, ",");
     strcat(str, entry->dstPort);
     strcat(str, "\n");
+
+    printf("log: %s\n", str);
 
     pthread_mutex_lock(&mut);
     fputs(str, logFile);

@@ -3,8 +3,7 @@
 
 #include <time.h>
 #include <string.h>
-
-
+#include <stdio.h>
 
 
 void get_date(char* buf)
