@@ -5,13 +5,14 @@
 
 typedef enum OPTION_T
 {
-    OPT_IP6,
-    OPT_IP4,
-    OPT_PORT,
-    OPT_MAX_CONNECTIONS,
-    OPT_USERPASS,
-    OPT_FIREWALL,
-    OPT_LOG,
+    OPT_NOOPTS          = 0,
+    OPT_IP4             = (1 << 0),
+    OPT_IP6             = (1 << 1),
+    OPT_PORT            = (1 << 2),
+    OPT_MAX_CONNECTIONS = (1 << 3),
+    OPT_USERPASS        = (1 << 4),
+    OPT_FIREWALL        = (1 << 5),
+    OPT_LOG             = (1 << 6)
 } option_t;
 
 

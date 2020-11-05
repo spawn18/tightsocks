@@ -105,33 +105,33 @@ void log_fmt_entry(const struct sockaddr_storage *srcAddr, const request_t *req,
 
 void log_write(const log_entry_t *entry)
 {
-    char date[DATE_LEN + 1];
+    char date[DATE_LEN + 1] = {0};
     get_date(date);
 
-    char time[TIME_LEN + 1];
+    char time[TIME_LEN + 1] = {0};
     get_time(time);
 
-    char s[LOG_ENTRY_LEN + 1];
+    char str[BUFSIZE + 1];
 
-    strcat(s, date);
-    strcat(s, ",");
-    strcat(s, time);
-    strcat(s, ",");
-    strcat(s, entry->srcHost);
-    strcat(s, ",");
-    strcat(s, entry->srcPort);
-    strcat(s, ",");
-    strcat(s, entry->command);
-    strcat(s, ",");
-    strcat(s, entry->addrType);
-    strcat(s, ",");
-    strcat(s, entry->dstHost);
-    strcat(s, ",");
-    strcat(s, entry->dstPort);
-    strcat(s, "\n");
+    strcat(str, date);
+    strcat(str, ",");
+    strcat(str, time);
+    strcat(str, ",");
+    strcat(str, entry->srcHost);
+    strcat(str, ",");
+    strcat(str, entry->srcPort);
+    strcat(str, ",");
+    strcat(str, entry->command);
+    strcat(str, ",");
+    strcat(str, entry->addrType);
+    strcat(str, ",");
+    strcat(str, entry->dstHost);
+    strcat(str, ",");
+    strcat(str, entry->dstPort);
+    strcat(str, "\n");
 
     pthread_mutex_lock(&mut);
-    fputs(s, logFile);
+    fputs(str, logFile);
     fflush(logFile);
     pthread_mutex_unlock(&mut);
 }

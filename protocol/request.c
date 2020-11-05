@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <system/firewall.h>
+#include <stdio.h>
 
 bool SOCKS_handle_request(socket_t client, request_t *req)
 {

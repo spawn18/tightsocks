@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
+#include <stdio.h>
 
 
 void SOCKS_connect(socket_t client, const request_t *req)
@@ -117,7 +118,7 @@ void SOCKS_connect(socket_t client, const request_t *req)
         {
             reply.ATYP = ATYP_IPV6;
             memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
-            memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 4);
+            memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 2);
         }
 
         if(SOCKS_reply(client, &reply))

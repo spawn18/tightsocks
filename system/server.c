@@ -18,8 +18,10 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <netinet/in.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <memory.h>
 
 
 static int totalConns = 0;
@@ -73,6 +75,10 @@ void serve()
     if(is_opt_set(OPT_IP4))
     {
         server4 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+        int on = 1;
+        setsockopt(server4, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
         if(server4 == -1)
         {
             exit(-1);
@@ -101,6 +107,10 @@ void serve()
     {
         server6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
+        int on = 1;
+        setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
+        setsockopt(server6, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
         if(server6 == -1)
         {
             exit(-1);
@@ -122,12 +132,11 @@ void serve()
         }
 
         fcntl(server6, F_SETFL, O_NONBLOCK);
-        int on = 1;
-        setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
     }
 
     socket_t server = server4;
     option_t opt = OPT_IP4;
+
 
     while(1)
     {

@@ -12,7 +12,6 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <errno.h>
-#include <math.h>
 
 
 struct option long_options[] ={
@@ -21,20 +20,15 @@ struct option long_options[] ={
         {"log", 2, NULL, 'l'},
         {"port", 1, NULL, 'p'},
         {"max-connections", 1, NULL, 'c'},
-        {"method", 1, NULL, 'm'},
         {"user", 1, NULL, 'u'},
         {"firewall", 0, NULL, 'f'},
-        {"decline", 1, NULL, 'd'},
-        {"bufsize", 1, NULL, 'b'},
         {"help", 0, NULL, 'h'},
-
 };
 
 void handle_args(int argc, char** argv)
 {
     char name[strlen(argv[0]) + 1];
     strcpy(name, argv[0]);
-
 
     int opt_char = 0;
     do
@@ -51,6 +45,7 @@ void handle_args(int argc, char** argv)
             case '6':
             {
                 set_opt(OPT_IP6);
+                break;
             }
             case 'l':
             {
