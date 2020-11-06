@@ -5,6 +5,6 @@
 #include "misc/defs.h"
 
 
-void SOCKS_bind(socket_t, const request_t*);
+void SOCKS_bind(sock_t, const request_t*);
 
 #endif 

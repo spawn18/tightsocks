@@ -2,23 +2,25 @@
 
 #include "protocol/reply.h"
 #include "network/io.h"
-#include "misc/utils.h"
 #include "system/options.h"
 
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <errno.h>
-#include <poll.h>
-#include <stdio.h>
 
 
-void SOCKS_connect(socket_t client, const request_t *req)
+void SOCKS_connect(sock_t client, const request_t *req)
 {
-    socket_t host;
+    sock_t host;
 
     reply_t reply = {0};
     reply.VER = SOCKS_VER;
+    reply.REP = REP_GENERAL_FAILURE;
+    reply.RSV = 0;
+    reply.ATYP = 0;
+    memset(reply.BNDADDR, 0, 255);
+    memset(reply.BNDPORT, 0, 2);
+
 
     if(req->ATYP == ATYP_DOMAINNAME)
     {
@@ -41,7 +43,6 @@ void SOCKS_connect(socket_t client, const request_t *req)
 
                 if(host == -1)
                 {
-                    reply.REP = REP_GENERAL_FAILURE;
                     continue;
                 }
 
@@ -50,21 +51,11 @@ void SOCKS_connect(socket_t client, const request_t *req)
                     reply.REP = REP_SUCCEEDED;
                     break;
                 }
-                else
-                {
-                    if      (errno == EHOSTUNREACH) reply.REP = REP_HOST_UNREACHABLE;
-                    else if (errno == ENETUNREACH)  reply.REP = REP_NETWORK_UNREACHABLE;
-                    else if (errno == ECONNREFUSED) reply.REP = REP_CONNECTION_REFUSED;
-                }
 
                 close(host);
             }
 
             freeaddrinfo(res);
-        }
-        else
-        {
-            reply.REP = REP_GENERAL_FAILURE;
         }
     }
     else
@@ -94,12 +85,6 @@ void SOCKS_connect(socket_t client, const request_t *req)
             {
                 reply.REP = REP_SUCCEEDED;
             }
-            else
-            {
-                if(errno == EHOSTUNREACH) reply.REP = REP_HOST_UNREACHABLE;
-                else if(errno == ENETUNREACH) reply.REP = REP_NETWORK_UNREACHABLE;
-                else if(errno == ECONNREFUSED) reply.REP = REP_CONNECTION_REFUSED;
-            }
         }
     }
 
@@ -123,18 +108,13 @@ void SOCKS_connect(socket_t client, const request_t *req)
             memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
             memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 2);
         }
+    }
 
-        if(SOCKS_reply(client, &reply))
-        {
-            handle_io(client, host);
-        }
+    SOCKS_reply(client, &reply);
 
+    if(reply.REP == REP_SUCCEEDED)
+    {
+        handle_io(client, host);
         close(host);
     }
-    else
-    {
-        SOCKS_reply(client, &reply);
-    }
-
-
 }

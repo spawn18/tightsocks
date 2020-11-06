@@ -5,21 +5,20 @@
 
 typedef enum OPTION_T
 {
-    OPT_NOOPTS          = 0,
-    OPT_IP4             = (1 << 0),
-    OPT_IP6             = (1 << 1),
-    OPT_PORT            = (1 << 2),
-    OPT_MAX_CONNECTIONS = (1 << 3),
-    OPT_USERPASS        = (1 << 4),
-    OPT_FIREWALL        = (1 << 5),
+    OPT_IP4             = (1 << 1),
+    OPT_IP6             = (1 << 2),
+    OPT_PORT            = (1 << 3),
+    OPT_MAX_CONNS = (1 << 4),
+    OPT_USERPASS        = (1 << 5),
     OPT_LOG             = (1 << 6)
 } option_t;
 
 
-extern int MAX_CONNECTIONS;
+extern int MAX_CONNS;
 extern unsigned short PORT;
 extern option_t OPTIONS;
-
+extern char USERNAME[255 + 1];
+extern char PASSWORD[255 + 1];
 
 static inline bool is_opt_set(option_t opt)
 {

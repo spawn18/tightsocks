@@ -4,6 +4,6 @@
 #include "protocol/request.h"
 #include "misc/defs.h"
 
-void SOCKS_udp_associate(socket_t, const request_t*);
+void SOCKS_udp_associate(sock_t, const request_t*);
 
 #endif 

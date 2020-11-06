@@ -3,6 +3,6 @@
 
 #include "misc/defs.h"
 
-bool method_userpass(socket_t client);
+bool method_userpass(sock_t client);
 
 #endif

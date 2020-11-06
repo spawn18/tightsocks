@@ -1,13 +1,12 @@
 #include "userpass.h"
 
 #include "network/io.h"
-#include "system/users.h"
+#include "system/options.h"
 
-#include <stdio.h>
 #include <string.h>
 
 
-bool method_userpass(socket_t client)
+bool method_userpass(sock_t client)
 {
     char buf[BUFSIZE + 1];
 
@@ -25,11 +24,7 @@ bool method_userpass(socket_t client)
                     char* pass = buf+3+userLen;
                     char passLen = buf[2+userLen];
 
-                    user_t u = {'\0'};
-                    strncpy(u.username, user, userLen);
-                    strncpy(u.password, pass, passLen);
-
-                    if(users_find(&u))
+                    if(strncmp(USERNAME, user, userLen) == 0 && strncmp(PASSWORD, pass, passLen) == 0)
                     {
                         char rep[2] = {SOCKS_VER, 0};
                         send_all(client, rep, 2);

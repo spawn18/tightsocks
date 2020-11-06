@@ -31,7 +31,7 @@ typedef struct REQUEST_T
 } request_t;
 
 
-bool SOCKS_handle_request(socket_t, request_t*);
+bool SOCKS_get_request(sock_t, request_t*);
 
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef ACE_DEFS_H
 #define ACE_DEFS_H
 
-typedef int socket_t;
+typedef int sock_t;
 typedef int bool;
 
 #define TRUE 1

@@ -6,7 +6,7 @@
 
 
 
-bool SOCKS_handle_method(socket_t client)
+bool SOCKS_handle_method(sock_t client)
 {
     char buf[BUFSIZE + 1];
 

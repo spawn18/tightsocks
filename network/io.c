@@ -4,9 +4,8 @@
 #include <stddef.h>
 #include <sys/socket.h>
 #include <poll.h>
-#include <stdio.h>
 
-bool send_all(socket_t s, const char* buf, size_t len)
+bool send_all(sock_t s, const char* buf, size_t len)
 {
     const char *p_buf = &buf[0];
 
@@ -22,7 +21,7 @@ bool send_all(socket_t s, const char* buf, size_t len)
     return TRUE;
 }
 
-int recv_all(socket_t s, char* buf, size_t len)
+int recv_all(sock_t s, char* buf, size_t len)
 {
     const size_t clen = len;
     char *p_buf = &buf[0];
@@ -39,7 +38,7 @@ int recv_all(socket_t s, char* buf, size_t len)
     return clen;
 }
 
-void handle_io(socket_t s1, socket_t s2)
+void handle_io(sock_t s1, sock_t s2)
 {
     struct pollfd fds[2];
 

@@ -3,28 +3,6 @@
 #include "protocol/request.h"
 
 #include <arpa/inet.h>
-#include <stdio.h>
-
-
-static void dec_to_hex(int d, char* hex)
-{
-    int i = 0;
-
-    while(d != 0)
-    {
-        int last = 0;
-        last = d % 16;
-
-        if(last < 10) hex[i] = last + 48;
-        else hex[i] = last + 55;
-
-        d /= 16;
-        i++;
-    }
-
-    hex[i] = '\0';
-}
-
 
 static int count_digits(int num)
 {
@@ -48,17 +26,6 @@ static void itos(int d, char* s)
         s[i] =  (char)(d % 10 + 48);
         d /= 10;
     }
-}
-
-
-static void remove_char(const char* strIn, char* strOut, char ch)
-{
-    do
-    {
-        if(*strIn == ch) ++strIn;
-        *(strOut++) = *(strIn++);
-    }
-    while(*strIn);
 }
 
 

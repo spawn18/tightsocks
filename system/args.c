@@ -1,11 +1,8 @@
-
 #include "args.h"
 
 #include "protocol/method_exchange.h"
 #include "options.h"
 #include "system/log.h"
-#include "users.h"
-#include "firewall.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -21,7 +18,6 @@ struct option long_options[] ={
         {"port", 1, NULL, 'p'},
         {"max-connections", 1, NULL, 'c'},
         {"user", 1, NULL, 'u'},
-        {"firewall", 0, NULL, 'f'},
         {"help", 0, NULL, 'h'},
 };
 
@@ -30,12 +26,12 @@ void handle_args(int argc, char** argv)
     char name[strlen(argv[0]) + 1];
     strcpy(name, argv[0]);
 
-    int opt_char = 0;
+    int optc = 0;
     do
     {
-        opt_char = getopt_long(argc, argv, "46lp:c:u:f:h", long_options, NULL);
+        optc = getopt_long(argc, argv, "46lp:c:u:h", long_options, NULL);
 
-        switch(opt_char)
+        switch(optc)
         {
             case '4':
             {
@@ -85,12 +81,12 @@ void handle_args(int argc, char** argv)
             }
             case 'c':
             {
-                set_opt(OPT_MAX_CONNECTIONS);
+                set_opt(OPT_MAX_CONNS);
 
                 int t = (int)strtol(optarg, NULL, 10);
                 if(errno == ERANGE)
                 {
-                    MAX_CONNECTIONS = t;
+                    MAX_CONNS = t;
                 }
                 else
                 {
@@ -107,38 +103,10 @@ void handle_args(int argc, char** argv)
                 char* user = strtok(optarg, " \"");
                 char* pass = strtok(NULL, " \n");
 
-                if(user != NULL && pass != NULL)
+                if(user != NULL && pass != NULL && strlen(user) <= 255 && strlen(pass) <= 255)
                 {
-                    users_init();
-
-                    user_t u = {'\0'};
-                    strcpy(u.username, user);
-                    strcpy(u.password, pass);
-
-                    users_add(&u);
-                }
-                else
-                {
-                    usage(name);
-                    exit(-1);
-                }
-
-                break;
-            }
-            case 'f':
-            {
-                set_opt(OPT_FIREWALL);
-
-                char* host = strtok(optarg, " ");
-                char* port = strtok(NULL, " ");
-
-                if(host != NULL && port != NULL && strlen(host) <= 255)
-                {
-                    fw_init();
-                    fw_rule_t rule = {0};
-                    strcpy(rule.host, host);
-                    strcpy(rule.port, port);
-                    fw_add(&rule);
+                    strcpy(USERNAME, user);
+                    strcpy(PASSWORD, pass);
                 }
                 else
                 {
@@ -159,7 +127,7 @@ void handle_args(int argc, char** argv)
             }
         }
     }
-    while(opt_char != -1);
+    while(optc != -1);
 
     if(!is_opt_set(OPT_IP4) && !is_opt_set(OPT_IP6))
     {
@@ -181,9 +149,6 @@ void usage(char* name)
            "  -u, --user=\"USERNAME PASSWORD\"            authenticate with username and password\n"
            "                                            USERNAME and PASSWORD must have\n"
            "                                            a length between 0 and 255\n"
-           "  -f, --firewall=\"HOST PORT\"                deny connections and datagrams to HOST and PORT\n"
-           "                                            HOST can be an IPv4, IPv6 or FQDN\n"
-           "                                            PORT must be in range of 0 to 65535\n"
            "  -h, --help                                print this usage guide \n", name);
 }
 

@@ -7,7 +7,6 @@
 #include "protocol/commands/bind.h"
 #include "protocol/commands/udp_associate.h"
 #include "protocol/method_exchange.h"
-#include "protocol/methods/userpass.h"
 #include "system/options.h"
 
 
@@ -18,10 +17,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <netinet/in.h>
-#include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <memory.h>
 
 
 static int totalConns = 0;
@@ -30,12 +26,12 @@ static pthread_mutex_t mut;
 
 void* handle_client(void* arg)
 {
-    socket_t client = *(socket_t*)arg;
+    sock_t client = *(sock_t*)arg;
 
     if(SOCKS_handle_method(client))
     {
         request_t req = {0};
-        if(SOCKS_handle_request(client, &req))
+        if(SOCKS_get_request(client, &req))
         {
             if(is_opt_set(OPT_LOG))
             {
@@ -69,102 +65,82 @@ void* handle_client(void* arg)
 
 void serve()
 {
-    socket_t server4;
-    socket_t server6;
+    sock_t s4;
+    sock_t s6;
 
     if(is_opt_set(OPT_IP4))
     {
-        server4 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        s4 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
         int on = 1;
-        setsockopt(server4, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        setsockopt(s4, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-        if(server4 == -1)
-        {
-            exit(-1);
-        }
+        if(s4 == -1) exit(-1);
 
         struct sockaddr_in addr4;
         addr4.sin_family = AF_INET;
-        addr4.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr4.sin_addr.s_addr = INADDR_ANY;
         addr4.sin_port = htons(PORT);
 
-        if(bind(server4, (struct sockaddr*)&addr4, sizeof(addr4)) == -1)
-        {
-            exit(-1);
-        }
+        if(bind(s4, (struct sockaddr*)&addr4, sizeof(addr4)) == -1) exit(-1);
 
-        if(listen(server4, MAX_CONNECTIONS) == -1)
-        {
-            exit(-1);
-        }
+        if(listen(s4, MAX_CONNS) == -1) exit(-1);
 
-        fcntl(server4, F_SETFL, O_NONBLOCK);
+
+        fcntl(s4, F_SETFL, O_NONBLOCK);
     }
 
 
     if(is_opt_set(OPT_IP6))
     {
-        server6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+        s6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
         int on = 1;
-        setsockopt(server6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
-        setsockopt(server6, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        setsockopt(s6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
+        setsockopt(s6, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-        if(server6 == -1)
-        {
-            exit(-1);
-        }
+        if(s6 == -1) exit(-1);
 
         struct sockaddr_in6 addr6;
         addr6.sin6_family = AF_INET6;
         addr6.sin6_addr = in6addr_any;
         addr6.sin6_port = htons(PORT);
 
-        if(bind(server6, (struct sockaddr*)&addr6, sizeof(addr6)) == -1)
-        {
-            exit(-1);
-        }
+        if(bind(s6, (struct sockaddr*)&addr6, sizeof(addr6)) == -1) exit(-1);
 
-        if(listen(server6, MAX_CONNECTIONS) == -1)
-        {
-            exit(-1);
-        }
+        if(listen(s6, MAX_CONNS) == -1) exit(-1);
 
-        fcntl(server6, F_SETFL, O_NONBLOCK);
+        fcntl(s6, F_SETFL, O_NONBLOCK);
     }
 
-    socket_t server = server4;
+    sock_t s = s4;
     option_t opt = OPT_IP4;
 
 
     while(1)
     {
-        if (totalConns > MAX_CONNECTIONS)
-        {
-            continue;
-        }
+        if (totalConns > MAX_CONNS) continue;
 
         if(is_opt_set(opt))
         {
-            int client = accept(server, NULL, NULL);
+            int client = accept(s, NULL, NULL);
             if(client != -1)
             {
                 pthread_mutex_lock(&mut);
                 ++totalConns;
                 pthread_mutex_unlock(&mut);
 
-                pthread_t thread = 0;
-                int* clientArg = malloc(sizeof(client));
-                *clientArg = client;
-                if (pthread_create(&thread, NULL, handle_client, clientArg) == 0)
+                pthread_t t = 0;
+                int* arg = malloc(sizeof(client));
+                *arg = client;
+                if (pthread_create(&t, NULL, handle_client, arg) == 0)
                 {
-                    pthread_detach(thread);
+                    pthread_detach(t);
                 }
             }
         }
 
-        opt    = (opt == OPT_IP4)    ? OPT_IP6  : OPT_IP4;
-        server = (server == server4) ? server6  : server4;
+        opt = (opt == OPT_IP4) ? OPT_IP6  : OPT_IP4;
+        s   = (s == s4)        ? s6       : s4;
     }
 }

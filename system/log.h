@@ -1,21 +1,18 @@
 #ifndef ACE_LOG_H
 #define ACE_LOG_H
 
-
 #include "misc/defs.h"
 #include "protocol/request.h"
 
-#define LOG_ENTRY_LEN 1024
-#define LOG_FIELD_LEN 255
 
 typedef struct LOG_ENTRY_T
 {
-    char srcHost[LOG_FIELD_LEN + 1];
-    char srcPort[LOG_FIELD_LEN + 1];
-    char command[LOG_FIELD_LEN + 1];
-    char addrType[LOG_FIELD_LEN + 1];
-    char dstHost[LOG_FIELD_LEN + 1];
-    char dstPort[LOG_FIELD_LEN + 1];
+    char srcHost[255 + 1];
+    char srcPort[255 + 1];
+    char command[255 + 1];
+    char addrType[255 + 1];
+    char dstHost[255 + 1];
+    char dstPort[255 + 1];
 } log_entry_t;
 
 

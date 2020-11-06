@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-bool SOCKS_reply(socket_t client, reply_t *reply)
+bool SOCKS_reply(sock_t client, reply_t *reply)
 {
     char buf[BUFSIZE + 1] = {0};
     int size = 4;
