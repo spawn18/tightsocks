@@ -177,7 +177,7 @@ void usage(char* name)
            "                                            USERNAME and PASSWORD must have\n"
            "                                            a length between 0 and 255\n"
            "  -f, --firewall=\"HOST PORT\"                a simple firewall up to 100 entries\n"
-           "                                            HOST must be IPv4, IPv6 or FQDN\n"
+           "                                            HOST must be an IPv4, IPv6 or FQDN\n"
            "                                            FQDN is not resolved. Only works if DNS is proxied\n"
            "  -h, --help                                print this usage guide \n", name);
 }
