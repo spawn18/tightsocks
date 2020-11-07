@@ -28,23 +28,23 @@ static void itos(int d, char* s)
     }
 }
 
-void req_to_str(const request_t *req, char* host, char* port)
+void req_addr_to_str(atyp_t reqAtyp, char* reqHost, char* reqPort, char* host, char* port)
 {
-    if(req->ATYP == ATYP_IPV4)
+    if(reqAtyp == ATYP_IPV4)
     {
-        strncpy(host, req->DSTADDR, 4);
+        strncpy(host, reqHost, 4);
     }
-    else if(req->ATYP == ATYP_IPV4)
+    else if(reqAtyp == ATYP_IPV6)
     {
-        strncpy(host, req->DSTADDR, 16);
+        strncpy(host, reqHost, 16);
     }
     else
     {
-        strncpy(host, &req->DSTADDR[1], req->DSTADDR[0]);
+        strncpy(host, &reqHost[1], reqHost[0]);
     }
 
     unsigned short p;
-    p = req->DSTPORT[0] | (req->DSTPORT[1] << 8);
+    p = reqHost[0] | (reqHost[1] << 8);
     p = ntohs(p);
     itos(p, port);
 }

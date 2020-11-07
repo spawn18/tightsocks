@@ -9,7 +9,7 @@
 #include "protocol/method_exchange.h"
 #include "system/options.h"
 #include "firewall.h"
-
+#include "protocol/reply.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -30,9 +30,11 @@ void* handle_client(void* arg)
 {
     sock_t client = *(sock_t*)arg;
 
+
     if(SOCKS_handle_method(client))
     {
         request_t req = {0};
+
         if(SOCKS_get_request(client, &req))
         {
             if(is_opt_set(OPT_LOG))
@@ -45,9 +47,9 @@ void* handle_client(void* arg)
                     log_entry_t entry = {0};
 
                     addr_to_str(&addr, entry.srcHost, entry.srcPort);
-                    req_to_str(&req, entry.dstHost, entry.dstPort);
                     cmd_to_str(req.CMD, entry.command);
                     atyp_to_str(req.ATYP, entry.addrType);
+                    req_addr_to_str(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
 
                     log_write(&entry);
                 }
@@ -56,13 +58,17 @@ void* handle_client(void* arg)
             if(is_opt_set(OPT_FIREWALL))
             {
                 fw_rule_t rule;
-                req_to_str(&req, rule.host, rule.port);
-                if(fw_find(&rule)) goto exit;
+                req_addr_to_str(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
+                if(fw_find(&rule))
+                {
+                    SOCKS_reply_fail(client, REP_CONN_NOT_ALLOWED);
+                    goto exit;
+                }
             }
 
-            if      (req.CMD == CMD_CONNECT)        SOCKS_connect(client, &req);
-            else if (req.CMD == CMD_BIND)           SOCKS_bind(client, &req);
-            else if (req.CMD == CMD_UDP_ASSOCIATE)  SOCKS_udp_associate(client, &req);
+            if      (req.CMD == CMD_CONNECT)        SOCKS_connect(client, req.ATYP, req.DSTADDR, req.DSTPORT);
+            else if (req.CMD == CMD_BIND)           SOCKS_bind(client, req.ATYP, req.DSTADDR, req.DSTPORT);
+            else if (req.CMD == CMD_UDP_ASSOCIATE)  SOCKS_udp_associate(client, req.ATYP, req.DSTADDR, req.DSTPORT);
         }
     }
 

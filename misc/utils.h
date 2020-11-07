@@ -9,7 +9,7 @@
 
 
 void addr_to_str(const struct sockaddr_storage *addr, char* host, char* port);
-void req_to_str(const request_t *req, char* host, char* port);
+void req_addr_to_str(atyp_t, char *, char *, char *, char *);
 void cmd_to_str(cmd_t, char *);
 void atyp_to_str(atyp_t, char *);
 

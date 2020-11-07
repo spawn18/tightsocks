@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <errno.h>
 
-void SOCKS_connect(sock_t client, const request_t *req)
+void SOCKS_connect(sock_t client, atyp_t atyp, char* dstaddr, char* dstport)
 {
     sock_t host;
 
-    if(req->ATYP == ATYP_DOMAINNAME)
+    if(atyp == ATYP_DOMAINNAME)
     {
         struct addrinfo gaiInfo;
         struct addrinfo* res = NULL;
@@ -26,12 +26,11 @@ void SOCKS_connect(sock_t client, const request_t *req)
         gaiInfo.ai_protocol  = 0;
         gaiInfo.ai_flags     = 0;
 
+        char gaiHost[255 + 1] = {0};
+        char gaiPort[5 + 1] = {0};
+        req_addr_to_str(atyp, dstaddr, dstport, gaiHost, gaiPort);
 
-        char dstaddr[255 + 1] = {0};
-        char dstport[5 + 1] = {0};
-        req_to_str(req, dstaddr, dstport);
-
-        if(getaddrinfo(dstaddr, dstport, &gaiInfo, &res) == 0)
+        if(getaddrinfo(gaiHost, gaiPort, &gaiInfo, &res) == 0)
         {
             struct addrinfo* p_res = NULL;
             for(p_res = res; p_res != NULL; p_res = p_res->ai_next)
@@ -55,31 +54,27 @@ void SOCKS_connect(sock_t client, const request_t *req)
             }
 
             freeaddrinfo(res);
+        }
 
-            if(p_res == NULL) SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
-        }
-        else
-        {
-            SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
-        }
+        SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
     }
     else
     {
         struct sockaddr_storage addr;
 
-        if(req->ATYP == ATYP_IPV4)
+        if(atyp == ATYP_IPV4)
         {
             addr.ss_family = AF_INET;
-            memcpy(&(((struct sockaddr_in*)&addr)->sin_addr.s_addr), req->DSTADDR, 4);
-            memcpy(&((struct sockaddr_in*)&addr)->sin_port, req->DSTPORT, 2);
+            memcpy(&(((struct sockaddr_in*)&addr)->sin_addr.s_addr), dstaddr, 4);
+            memcpy(&((struct sockaddr_in*)&addr)->sin_port, dstport, 2);
 
             host = socket(AF_INET, SOCK_STREAM, 0);
         }
         else
         {
             addr.ss_family = AF_INET6;
-            memcpy(&(((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr), req->DSTADDR, 4);
-            memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, req->DSTPORT, 2);
+            memcpy(&(((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr), dstaddr, 4);
+            memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, dstport, 2);
 
             host = socket(AF_INET6, SOCK_STREAM, 0);
         }
@@ -97,6 +92,8 @@ void SOCKS_connect(sock_t client, const request_t *req)
                 else                            SOCKS_reply_fail(client, REP_HOST_UNREACH);
             }
         }
+
+        SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
     }
 
     return;

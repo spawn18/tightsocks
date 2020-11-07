@@ -2,7 +2,7 @@
 
 #include "misc/utils.h"
 
-void SOCKS_udp_associate(sock_t client, const request_t *req)
+void SOCKS_udp_associate(sock_t client, atyp_t atyp, char* host, char* port)
 {
 
 }
