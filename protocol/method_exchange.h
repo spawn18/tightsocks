@@ -6,6 +6,7 @@
 typedef enum METHOD_T
 {
     MET_NOAUTH = 0,
+    MET_GSSAPI = 1,
     MET_USERPASS = 2,
     MET_NOMETHOD = 0xFF,
 } method_t;

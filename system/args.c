@@ -3,6 +3,7 @@
 #include "protocol/method_exchange.h"
 #include "options.h"
 #include "system/log.h"
+#include "firewall.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@ struct option long_options[] ={
         {"port", 1, NULL, 'p'},
         {"max-connections", 1, NULL, 'c'},
         {"user", 1, NULL, 'u'},
+        {"firewall", 1, NULL, 'f'},
         {"help", 0, NULL, 'h'},
 };
 
@@ -116,6 +118,31 @@ void handle_args(int argc, char** argv)
 
                 break;
             }
+            case 'f':
+            {
+                set_opt(OPT_FIREWALL);
+
+                char* host = strtok(optarg, " \"");
+                char* port = strtok(NULL," \"");
+
+                if(host != NULL && port != NULL)
+                {
+                    if(strlen(port) > 0 && strlen(port) < 6)
+                    {
+                        fw_rule_t rule = {0};
+                        strcpy(rule.host, host);
+                        strcpy(rule.port, port);
+                        fw_add(&rule);
+                    }
+                }
+                else
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
+                break;
+            }
             case 'h':
             {
                 usage(name);
@@ -149,6 +176,9 @@ void usage(char* name)
            "  -u, --user=\"USERNAME PASSWORD\"            authenticate with username and password\n"
            "                                            USERNAME and PASSWORD must have\n"
            "                                            a length between 0 and 255\n"
+           "  -f, --firewall=\"HOST PORT\"                a simple firewall up to 100 entries\n"
+           "                                            HOST must be IPv4, IPv6 or FQDN\n"
+           "                                            FQDN is not resolved. Only works if DNS is proxied\n"
            "  -h, --help                                print this usage guide \n", name);
 }
 

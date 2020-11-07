@@ -1,12 +1,9 @@
 #include "log.h"
-#include "misc/utils.h"
 #include "misc/defs.h"
 #include "misc/chrono.h"
 
 #include <stdio.h>
 #include <memory.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <pthread.h>
 
 static FILE* logFile = NULL;
@@ -49,59 +46,6 @@ void log_close()
         fclose(logFile);
     }
 }
-
-
-void log_fmt_entry(const struct sockaddr_storage *srcAddr, const request_t *req, log_entry_t* entry)
-{
-    unload_addr(srcAddr, entry->srcHost, entry->srcPort);
-
-    if(req->CMD == CMD_CONNECT)
-    {
-        strcpy(entry->command, "CONNECT");
-    }
-    else if(req->CMD == CMD_BIND)
-    {
-        strcpy(entry->command, "BIND");
-    }
-    else
-    {
-        strcpy(entry->command, "\"UDP ASSOCIATE\"");
-    }
-
-
-    if(req->ATYP == ATYP_DOMAINNAME)
-    {
-        strcpy(entry->addrType, "DOMAINNAME");
-        strncpy(entry->dstHost, &req->DSTADDR[1], req->DSTADDR[0]);
-        entry->dstHost[req->DSTADDR[0]] = '\0';
-    }
-    else
-    {
-        struct sockaddr_storage dstAddr;
-
-        if(req->ATYP == ATYP_IPV4)
-        {
-            strcpy(entry->addrType, "IPV4");
-
-            dstAddr.ss_family = AF_INET;
-            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_addr.s_addr, req->DSTADDR, 4);
-            memcpy(&((struct sockaddr_in*)&dstAddr)->sin_port, req->DSTPORT, 2);
-
-            unload_addr(&dstAddr, entry->dstHost, entry->dstPort);
-        }
-        else if(req->ATYP == ATYP_IPV6)
-        {
-            strcpy(entry->addrType, "IPV6");
-
-            dstAddr.ss_family = AF_INET6;
-            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_addr.s6_addr, req->DSTADDR, 16);
-            memcpy(&((struct sockaddr_in6*)&dstAddr)->sin6_port, req->DSTPORT, 2);
-
-            unload_addr(&dstAddr, entry->dstHost, entry->dstPort);
-        }
-    }
-}
-
 
 void log_write(const log_entry_t *entry)
 {

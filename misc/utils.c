@@ -3,6 +3,7 @@
 #include "protocol/request.h"
 
 #include <arpa/inet.h>
+#include <string.h>
 
 static int count_digits(int num)
 {
@@ -14,7 +15,6 @@ static int count_digits(int num)
     }
     return count;
 }
-
 
 static void itos(int d, char* s)
 {
@@ -28,8 +28,28 @@ static void itos(int d, char* s)
     }
 }
 
+void req_to_str(const request_t *req, char* host, char* port)
+{
+    if(req->ATYP == ATYP_IPV4)
+    {
+        strncpy(host, req->DSTADDR, 4);
+    }
+    else if(req->ATYP == ATYP_IPV4)
+    {
+        strncpy(host, req->DSTADDR, 16);
+    }
+    else
+    {
+        strncpy(host, &req->DSTADDR[1], req->DSTADDR[0]);
+    }
 
-void unload_addr(const struct sockaddr_storage *addr, char* host, char* port)
+    unsigned short p;
+    p = req->DSTPORT[0] | (req->DSTPORT[1] << 8);
+    p = ntohs(p);
+    itos(p, port);
+}
+
+void addr_to_str(const struct sockaddr_storage *addr, char* host, char* port)
 {
     if(addr->ss_family == AF_INET)
     {
@@ -55,7 +75,34 @@ void unload_addr(const struct sockaddr_storage *addr, char* host, char* port)
     itos(sPort, port);
 }
 
-void load_addr()
+void cmd_to_str(cmd_t cmd, char *str)
 {
+    if(cmd == CMD_CONNECT)
+    {
+        strcpy(str, "CONNECT");
+    }
+    else if(cmd == CMD_BIND)
+    {
+        strcpy(str, "BIND");
+    }
+    else
+    {
+        strcpy(str, "\"UDP ASSOCIATE\"");
+    }
+}
 
+void atyp_to_str(atyp_t atyp, char *str)
+{
+    if(atyp == ATYP_IPV4)
+    {
+        strcpy(str, "CONNECT");
+    }
+    else if(atyp == ATYP_IPV6)
+    {
+        strcpy(str, "BIND");
+    }
+    else
+    {
+        strcpy(str, "\"UDP ASSOCIATE\"");
+    }
 }

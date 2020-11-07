@@ -4,6 +4,20 @@
 #include <string.h>
 
 
+bool SOCKS_reply_fail(sock_t client, rep_t REP)
+{
+    reply_t reply;
+
+    reply.VER = SOCKS_VER;
+    reply.REP = REP;
+    reply.RSV = 0;
+    reply.ATYP = 0;
+    memset(reply.BNDADDR, 0, 255);
+    memset(reply.BNDPORT, 0, 2);
+
+    return SOCKS_reply(client, &reply);
+}
+
 bool SOCKS_reply(sock_t client, reply_t *reply)
 {
     char buf[BUFSIZE + 1] = {0};

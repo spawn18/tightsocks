@@ -8,6 +8,13 @@ typedef enum REP_T
 {
     REP_SUCCEEDED = 0,
     REP_GENERAL_FAILURE,
+    REP_CONN_NOT_ALLOWED,
+    REP_NET_UNREACH,
+    REP_HOST_UNREACH,
+    REP_CONN_REFUSED,
+    REP_TTL_EXP,
+    REP_CMD_NOT_SUPP,
+    REP_ATYP_NOT_SUPP,
 } rep_t;
 
 typedef struct REPLY_T
@@ -21,5 +28,6 @@ typedef struct REPLY_T
 } reply_t;
 
 bool SOCKS_reply(sock_t, reply_t*);
+bool SOCKS_reply_fail(sock_t, rep_t);
 
 #endif 

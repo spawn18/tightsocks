@@ -8,11 +8,11 @@ typedef enum OPTION_T
     OPT_IP4             = (1 << 1),
     OPT_IP6             = (1 << 2),
     OPT_PORT            = (1 << 3),
-    OPT_MAX_CONNS = (1 << 4),
+    OPT_MAX_CONNS       = (1 << 4),
     OPT_USERPASS        = (1 << 5),
-    OPT_LOG             = (1 << 6)
+    OPT_FIREWALL        = (1 << 6),
+    OPT_LOG             = (1 << 7)
 } option_t;
-
 
 extern int MAX_CONNS;
 extern unsigned short PORT;

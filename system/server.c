@@ -8,6 +8,7 @@
 #include "protocol/commands/udp_associate.h"
 #include "protocol/method_exchange.h"
 #include "system/options.h"
+#include "firewall.h"
 
 
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <misc/utils.h>
 
 
 static int totalConns = 0;
@@ -41,9 +43,21 @@ void* handle_client(void* arg)
                 if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
                 {
                     log_entry_t entry = {0};
-                    log_fmt_entry(&addr, &req, &entry);
+
+                    addr_to_str(&addr, entry.srcHost, entry.srcPort);
+                    req_to_str(&req, entry.dstHost, entry.dstPort);
+                    cmd_to_str(req.CMD, entry.command);
+                    atyp_to_str(req.ATYP, entry.addrType);
+
                     log_write(&entry);
                 }
+            }
+
+            if(is_opt_set(OPT_FIREWALL))
+            {
+                fw_rule_t rule;
+                req_to_str(&req, rule.host, rule.port);
+                if(fw_find(&rule)) goto exit;
             }
 
             if      (req.CMD == CMD_CONNECT)        SOCKS_connect(client, &req);
@@ -52,6 +66,7 @@ void* handle_client(void* arg)
         }
     }
 
+exit:;
     close(client);
 
     pthread_mutex_lock(&mut);

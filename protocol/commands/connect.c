@@ -3,24 +3,16 @@
 #include "protocol/reply.h"
 #include "network/io.h"
 #include "system/options.h"
+#include "misc/utils.h"
 
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
-
+#include <errno.h>
 
 void SOCKS_connect(sock_t client, const request_t *req)
 {
     sock_t host;
-
-    reply_t reply = {0};
-    reply.VER = SOCKS_VER;
-    reply.REP = REP_GENERAL_FAILURE;
-    reply.RSV = 0;
-    reply.ATYP = 0;
-    memset(reply.BNDADDR, 0, 255);
-    memset(reply.BNDPORT, 0, 2);
-
 
     if(req->ATYP == ATYP_DOMAINNAME)
     {
@@ -34,28 +26,41 @@ void SOCKS_connect(sock_t client, const request_t *req)
         gaiInfo.ai_protocol  = 0;
         gaiInfo.ai_flags     = 0;
 
-        if(getaddrinfo(&req->DSTADDR[1], req->DSTPORT, &gaiInfo, &res) == 0)
+
+        char dstaddr[255 + 1] = {0};
+        char dstport[5 + 1] = {0};
+        req_to_str(req, dstaddr, dstport);
+
+        if(getaddrinfo(dstaddr, dstport, &gaiInfo, &res) == 0)
         {
             struct addrinfo* p_res = NULL;
             for(p_res = res; p_res != NULL; p_res = p_res->ai_next)
             {
                 host = socket(p_res->ai_family, p_res->ai_socktype, p_res->ai_protocol);
 
-                if(host == -1)
-                {
-                    continue;
-                }
+                if(host == -1)  continue;
 
                 if(connect(host, p_res->ai_addr, p_res->ai_addrlen) == 0)
                 {
-                    reply.REP = REP_SUCCEEDED;
-                    break;
+                    goto success;
+                }
+                else
+                {
+                    if      (errno == ECONNREFUSED) SOCKS_reply_fail(client, REP_CONN_REFUSED);
+                    else if (errno == ENETUNREACH)  SOCKS_reply_fail(client, REP_NET_UNREACH);
+                    else                            SOCKS_reply_fail(client, REP_HOST_UNREACH);
                 }
 
                 close(host);
             }
 
             freeaddrinfo(res);
+
+            if(p_res == NULL) SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
+        }
+        else
+        {
+            SOCKS_reply_fail(client, REP_GENERAL_FAILURE);
         }
     }
     else
@@ -83,38 +88,48 @@ void SOCKS_connect(sock_t client, const request_t *req)
         {
             if(connect(host, (struct sockaddr*)&addr, sizeof(addr)) == 0)
             {
-                reply.REP = REP_SUCCEEDED;
+                goto success;
+            }
+            else
+            {
+                if      (errno == ECONNREFUSED) SOCKS_reply_fail(client, REP_CONN_REFUSED);
+                else if (errno == ENETUNREACH)  SOCKS_reply_fail(client, REP_NET_UNREACH);
+                else                            SOCKS_reply_fail(client, REP_HOST_UNREACH);
             }
         }
     }
 
+    return;
 
-    if(reply.REP == REP_SUCCEEDED)
+success:;
+
+    struct sockaddr_storage addr;
+    socklen_t addrLen = sizeof(addr);
+
+    getsockname(host, (struct sockaddr*)&addr, &addrLen);
+
+    reply_t reply = {0};
+    reply.VER = SOCKS_VER;
+    reply.REP = REP_SUCCEEDED;
+    reply.RSV = 0;
+    reply.ATYP = 0;
+    memset(reply.BNDADDR, 0, 255);
+    memset(reply.BNDPORT, 0, 2);
+
+    if(addr.ss_family == AF_INET)
     {
-        struct sockaddr_storage addr;
-        socklen_t addrLen = sizeof(addr);
-
-        getsockname(host, (struct sockaddr*)&addr, &addrLen);
-
-        if(addr.ss_family == AF_INET)
-        {
-            reply.ATYP = ATYP_IPV4;
-            memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
-            memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
-        }
-        else
-        {
-            reply.ATYP = ATYP_IPV6;
-            memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
-            memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 2);
-        }
+        reply.ATYP = ATYP_IPV4;
+        memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, 4);
+        memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in*)&addr)->sin_port, 2);
+    }
+    else
+    {
+        reply.ATYP = ATYP_IPV6;
+        memcpy(reply.BNDADDR, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, 16);
+        memcpy(reply.BNDPORT, (void*)&((struct sockaddr_in6*)&addr)->sin6_port, 2);
     }
 
     SOCKS_reply(client, &reply);
-
-    if(reply.REP == REP_SUCCEEDED)
-    {
-        handle_io(client, host);
-        close(host);
-    }
+    handle_io(client, host);
+    close(host);
 }
