@@ -16,7 +16,7 @@ bool SOCKS_handle_method(sock_t client)
         {
             if(recv_all(client, buf+2, buf[1]) > 0)
             {
-                method_t metPref = is_opt_set(OPT_USERPASS) ? MET_USERPASS : MET_NOAUTH;
+                method_t metPref = IS_OPT_SET(OPT_USERPASS) ? MET_USERPASS : MET_NOAUTH;
                 method_t metFinal = MET_NOMETHOD;
 
                 for (int i = 0; i < buf[1]; i++)

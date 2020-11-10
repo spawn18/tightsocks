@@ -1,4 +1,3 @@
-#include "defs.h"
 #include "utils.h"
 #include "protocol/request.h"
 
@@ -28,81 +27,58 @@ static void itos(int d, char* s)
     }
 }
 
-void req_addr_to_str(atyp_t reqAtyp, char* reqHost, char* reqPort, char* host, char* port)
+void req_addr_to_str(atyp_t reqAtyp, const char* reqHost, const char* reqPort, char* host, char* port)
 {
+    struct sockaddr_storage addr;
+
     if(reqAtyp == ATYP_IPV4)
     {
-        strncpy(host, reqHost, 4);
+        addr.ss_family = AF_INET;
+        memcpy(&((struct sockaddr_in*)&addr)->sin_addr, reqHost, 4);
+        memcpy(&((struct sockaddr_in*)&addr)->sin_port, reqPort, 2);
+        addr_to_str(&addr, host, port);
     }
     else if(reqAtyp == ATYP_IPV6)
     {
-        strncpy(host, reqHost, 16);
+        addr.ss_family = AF_INET6;
+        memcpy(&((struct sockaddr_in6*)&addr)->sin6_addr, reqHost, 16);
+        memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, reqPort, 2);
+        addr_to_str(&addr, host, port);
     }
     else
     {
-        strncpy(host, &reqHost[1], reqHost[0]);
-    }
+        memcpy(host, &reqHost[1], reqHost[0]);
 
-    unsigned short p;
-    p = reqHost[0] | (reqHost[1] << 8);
-    p = ntohs(p);
-    itos(p, port);
+        unsigned short p;
+        p = reqPort[0] | (reqPort[1] << 8);
+        p = ntohs(p);
+        itos(p, port);
+    }
 }
 
 void addr_to_str(const struct sockaddr_storage *addr, char* host, char* port)
 {
     if(addr->ss_family == AF_INET)
     {
-        inet_ntop(addr->ss_family, (void*)&((struct sockaddr_in*)&addr)->sin_addr.s_addr, host, INET6_ADDRSTRLEN);
+        inet_ntop(addr->ss_family, (void*)&((struct sockaddr_in*)&addr)->sin_addr, host, INET_ADDRSTRLEN);
     }
     else
     {
-        inet_ntop(addr->ss_family, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, host, INET_ADDRSTRLEN);
+        inet_ntop(addr->ss_family, (void*)&((struct sockaddr_in6*)&addr)->sin6_addr, host, INET6_ADDRSTRLEN);
     }
 
-    unsigned short sPort;
+    unsigned short p;
 
     if(addr->ss_family == AF_INET)
     {
-        sPort = ((struct sockaddr_in*)&addr)->sin_port | (((struct sockaddr_in*)&addr)->sin_port << 8);
+        p = ((struct sockaddr_in*)&addr)->sin_port | (((struct sockaddr_in*)&addr)->sin_port << 8);
     }
     else
     {
-        sPort = ((struct sockaddr_in6*)&addr)->sin6_port | (((struct sockaddr_in6*)&addr)->sin6_port << 8);
+        p = ((struct sockaddr_in6*)&addr)->sin6_port | (((struct sockaddr_in6*)&addr)->sin6_port << 8);
     }
 
-    sPort = ntohs(sPort);
-    itos(sPort, port);
+    p = ntohs(p);
+    itos(p, port);
 }
 
-void cmd_to_str(cmd_t cmd, char *str)
-{
-    if(cmd == CMD_CONNECT)
-    {
-        strcpy(str, "CONNECT");
-    }
-    else if(cmd == CMD_BIND)
-    {
-        strcpy(str, "BIND");
-    }
-    else
-    {
-        strcpy(str, "\"UDP ASSOCIATE\"");
-    }
-}
-
-void atyp_to_str(atyp_t atyp, char *str)
-{
-    if(atyp == ATYP_IPV4)
-    {
-        strcpy(str, "CONNECT");
-    }
-    else if(atyp == ATYP_IPV6)
-    {
-        strcpy(str, "BIND");
-    }
-    else
-    {
-        strcpy(str, "\"UDP ASSOCIATE\"");
-    }
-}

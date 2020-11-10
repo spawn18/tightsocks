@@ -39,7 +39,7 @@ bool SOCKS_get_request(sock_t client, request_t *req)
             else if(req->ATYP == ATYP_DOMAINNAME)
             {
                 recv_all(client, &buf[5], buf[4] + 2);
-                memcpy(req->DSTADDR, &buf[5], buf[4]);
+                memcpy(req->DSTADDR, &buf[4], buf[4]+1);
                 memcpy(req->DSTPORT, &buf[5 + buf[4]], 2);
             }
             else

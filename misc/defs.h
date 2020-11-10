@@ -9,5 +9,4 @@ typedef int bool;
 #define SOCKS_VER 5
 #define BUFSIZE 1024
 
-
 #endif 

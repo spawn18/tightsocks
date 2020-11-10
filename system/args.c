@@ -31,23 +31,23 @@ void handle_args(int argc, char** argv)
     int optc = 0;
     do
     {
-        optc = getopt_long(argc, argv, "46lp:c:u:h", long_options, NULL);
+        optc = getopt_long(argc, argv, "46lp:c:u:f:h", long_options, NULL);
 
         switch(optc)
         {
             case '4':
             {
-                set_opt(OPT_IP4);
+                SET_OPT(OPT_IP4);
                 break;
             }
             case '6':
             {
-                set_opt(OPT_IP6);
+                SET_OPT(OPT_IP6);
                 break;
             }
             case 'l':
             {
-                set_opt(OPT_LOG);
+                SET_OPT(OPT_LOG);
 
                 bool isOpen = FALSE;
 
@@ -66,7 +66,7 @@ void handle_args(int argc, char** argv)
             }
             case 'p':
             {
-                set_opt(OPT_PORT);
+                SET_OPT(OPT_PORT);
 
                 long tmp = strtol(optarg, NULL, 10);
                 if(0 < tmp && tmp < 65535 && errno != ERANGE)
@@ -83,7 +83,7 @@ void handle_args(int argc, char** argv)
             }
             case 'c':
             {
-                set_opt(OPT_MAX_CONNS);
+                SET_OPT(OPT_MAX_CONNS);
 
                 int t = (int)strtol(optarg, NULL, 10);
                 if(errno == ERANGE)
@@ -100,7 +100,7 @@ void handle_args(int argc, char** argv)
             }
             case 'u':
             {
-                set_opt(OPT_USERPASS);
+                SET_OPT(OPT_USERPASS);
 
                 char* user = strtok(optarg, " \"");
                 char* pass = strtok(NULL, " \n");
@@ -120,7 +120,7 @@ void handle_args(int argc, char** argv)
             }
             case 'f':
             {
-                set_opt(OPT_FIREWALL);
+                SET_OPT(OPT_FIREWALL);
 
                 char* host = strtok(optarg, " \"");
                 char* port = strtok(NULL," \"");
@@ -156,10 +156,10 @@ void handle_args(int argc, char** argv)
     }
     while(optc != -1);
 
-    if(!is_opt_set(OPT_IP4) && !is_opt_set(OPT_IP6))
+    if(!IS_OPT_SET(OPT_IP4) && !IS_OPT_SET(OPT_IP6))
     {
-        set_opt(OPT_IP4);
-        set_opt(OPT_IP6);
+        SET_OPT(OPT_IP4);
+        SET_OPT(OPT_IP6);
     }
 }
 

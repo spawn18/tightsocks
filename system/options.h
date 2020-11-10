@@ -20,20 +20,9 @@ extern option_t OPTIONS;
 extern char USERNAME[255 + 1];
 extern char PASSWORD[255 + 1];
 
-static inline bool is_opt_set(option_t opt)
-{
-    return OPTIONS & opt;
-}
-
-static inline void set_opt(option_t opt)
-{
-    OPTIONS |= opt;
-}
-
-static inline void unset_opt(option_t opt)
-{
-    OPTIONS &= ~opt;
-}
+#define IS_OPT_SET(opt) OPTIONS & opt
+#define SET_OPT(opt) OPTIONS |= opt
+#define UNSET_OPT(opt) OPTIONS &= ~opt
 
 
 #endif 
