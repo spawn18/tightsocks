@@ -24,10 +24,9 @@
 static int totalConns = 0;
 static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-// TODO: ipv6 log isn't being displayed properly
-// TODO: UDP assoc and bind reqs
-// TODO: Prob better buf size
-// TODO: why does incorrect nbo work?
+// TODO: Why does incorrect network-byte order work?
+// TODO: Does the server decline some connections?
+// TODO: Prob regex firewall
 
 void* handle_client(void* arg)
 {
@@ -41,17 +40,17 @@ void* handle_client(void* arg)
         {
             if(IS_OPT_SET(OPT_LOG))
             {
-                struct sockaddr_storage addr;
+                struct sockaddr_storage addr = {0};
                 socklen_t len = sizeof(addr);
 
                 if(getpeername(client, (struct sockaddr*)&addr, &len) == 0)
                 {
                     log_entry_t entry = {0};
 
-                    addr_to_str(&addr, entry.srcHost, entry.srcPort);
-                    cmd_to_str(req.CMD, entry.command);
-                    atyp_to_str(req.ATYP, entry.addrType);
-                    req_addr_to_str(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
+                    atop(&addr, entry.srcHost, entry.srcPort);
+                    cmdtop(req.CMD, entry.command);
+                    atyptop(req.ATYP, entry.addrType);
+                    reqtop(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
 
                     log_write(&entry);
                 }
@@ -60,7 +59,7 @@ void* handle_client(void* arg)
             if(IS_OPT_SET(OPT_FIREWALL))
             {
                 fw_rule_t rule = {0};
-                req_addr_to_str(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
+                reqtop(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
                 if(fw_find(&rule))
                 {
                     SOCKS_reply_fail(client, REP_CONN_NOT_ALLOWED);

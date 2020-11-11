@@ -9,32 +9,23 @@
 static FILE* logFile = NULL;
 static pthread_mutex_t mut;
 
-bool log_open(char* path)
+bool log_open(char* pathArg)
 {
     char* desc = "date,time,\"source host\",\"source port\",command,\"address type\",\"destination host\",\"destination port\"\n";
+    char* path = "";
 
-    if(path)
-    {
-        logFile = fopen(path, "r+");
-    }
-    else
-    {
-        logFile = fopen("log.csv", "r+");
-    }
+    if(path != NULL) path = pathArg;
 
-    if(logFile == NULL)
-    {
-        logFile = fopen("log.csv", "a");
-        if(logFile == NULL) return FALSE;
-        fputs(desc, logFile);
-        fflush(logFile);
-    }
-    else
+    logFile = fopen(strcat(path, "log.csv"), "a+");
+    if(logFile != NULL)
     {
         fseek(logFile, 0, SEEK_END);
+        fputs(desc, logFile);
+        fflush(logFile);
+        return TRUE;
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 

@@ -18,7 +18,7 @@ bool fw_find(const fw_rule_t* rule)
 {
     for(int i = 0; i < 100; i++)
     {
-        if(strcmp(rule->host, fw_rules[i].host) == 0 && strcmp(rule->host, fw_rules[i].port) == 0)
+        if(strcmp(rule->host, fw_rules[i].host) == 0 && strcmp(rule->port, fw_rules[i].port) == 0)
         {
             return TRUE;
         }

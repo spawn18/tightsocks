@@ -35,7 +35,7 @@ void SOCKS_connect(sock_t client, atyp_t atyp, char* dstaddr, char* dstport)
 
         char gaiHost[255 + 1] = {0};
         char gaiPort[5 + 1] = {0};
-        req_addr_to_str(atyp, dstaddr, dstport, gaiHost, gaiPort);
+        reqtop(atyp, dstaddr, dstport, gaiHost, gaiPort);
 
         if(getaddrinfo(gaiHost, gaiPort, &gaiInfo, &res) == 0)
         {

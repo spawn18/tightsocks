@@ -20,8 +20,8 @@ extern option_t OPTIONS;
 extern char USERNAME[255 + 1];
 extern char PASSWORD[255 + 1];
 
-#define IS_OPT_SET(opt) OPTIONS & opt
-#define SET_OPT(opt) OPTIONS |= opt
+#define IS_OPT_SET(opt) (OPTIONS & opt)
+#define SET_OPT(opt) (OPTIONS |= opt)
 #define UNSET_OPT(opt) OPTIONS &= ~opt
 
 
