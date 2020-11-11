@@ -9,14 +9,12 @@
 static FILE* logFile = NULL;
 static pthread_mutex_t mut;
 
-bool log_open(char* pathArg)
+bool log_open()
 {
     char* desc = "date,time,\"source host\",\"source port\",command,\"address type\",\"destination host\",\"destination port\"\n";
-    char* path = "";
 
-    if(path != NULL) path = pathArg;
+    logFile = fopen("log.csv", "a+");
 
-    logFile = fopen(strcat(path, "log.csv"), "a+");
     if(logFile != NULL)
     {
         fseek(logFile, 0, SEEK_END);

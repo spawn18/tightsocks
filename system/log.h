@@ -16,7 +16,7 @@ typedef struct LOG_ENTRY_T
 } log_entry_t;
 
 
-bool log_open(char*);
+bool log_open();
 void log_write(const log_entry_t*);
 
 #endif 

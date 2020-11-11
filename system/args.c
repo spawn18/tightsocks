@@ -15,7 +15,7 @@
 struct option long_options[] ={
         {"ipv4", 0, NULL, '4'},
         {"ipv6", 0, NULL, '6'},
-        {"log", 2, NULL, 'l'},
+        {"log", 0, NULL, 'l'},
         {"port", 1, NULL, 'p'},
         {"max-connections", 1, NULL, 'c'},
         {"user", 1, NULL, 'u'},
@@ -31,7 +31,7 @@ void handle_args(int argc, char** argv)
     int optc = 0;
     do
     {
-        optc = getopt_long(argc, argv, "46lp:c:u:f:h", long_options, NULL);
+        optc = getopt_long(argc, argv, "46l::p:c:u:f:h", long_options, NULL);
 
         switch(optc)
         {
@@ -49,18 +49,7 @@ void handle_args(int argc, char** argv)
             {
                 SET_OPT(OPT_LOG);
 
-                bool isOpen = FALSE;
-
-                if(optarg)
-                {
-                    isOpen = log_open(optarg);
-                }
-                else
-                {
-                    isOpen = log_open(NULL);
-                }
-
-                if(!isOpen) exit(-1);
+                if(!log_open()) exit(-1);
 
                 break;
             }
@@ -170,7 +159,7 @@ void usage(char* name)
            "  -4, --ipv4                                accept IPv4 connections\n"
            "  -6, --ipv6                                accept IPv6 connections\n"
            "                                            if unset, both are assumed\n"
-           "  -l, --log[=PATH]                          enable logging to .csv file\n"
+           "  -l, --log[=PATH]                          enable access logging to csv file\n"
            "  -p, --port=NUMBER                         set server port [default: 1080]\n"
            "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
            "  -u, --user=\"USERNAME PASSWORD\"            authenticate with username and password\n"
