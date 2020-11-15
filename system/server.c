@@ -20,12 +20,13 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <misc/utils.h>
+#include <stdio.h>
+#include <errno.h>
 
 static int totalConns = 0;
 static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 // TODO: Why does incorrect network-byte order work?
-// TODO: Does the server decline some connections?
 // TODO: Prob regex firewall
 
 void* handle_client(void* arg)
@@ -47,10 +48,10 @@ void* handle_client(void* arg)
                 {
                     log_entry_t entry = {0};
 
-                    atop(&addr, entry.srcHost, entry.srcPort);
-                    cmdtop(req.CMD, entry.command);
-                    atyptop(req.ATYP, entry.addrType);
-                    reqtop(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
+                    host_to_p(&addr, entry.srcHost, entry.srcPort);
+                    cmd_to_p(req.CMD, entry.command);
+                    atyp_to_p(req.ATYP, entry.addrType);
+                    req_host_to_p(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
 
                     log_write(&entry);
                 }
@@ -59,7 +60,7 @@ void* handle_client(void* arg)
             if(IS_OPT_SET(OPT_FIREWALL))
             {
                 fw_rule_t rule = {0};
-                reqtop(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
+                req_host_to_p(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
                 if(fw_find(&rule))
                 {
                     SOCKS_reply_fail(client, REP_CONN_NOT_ALLOWED);
