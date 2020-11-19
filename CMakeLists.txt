@@ -6,10 +6,8 @@ set(CMAKE_C_STANDARD 99)
 add_executable(Ace
         network/io.h
         protocol/request.h
-        protocol/methods/userpass.h
         network/io.c
         protocol/request.c
-        protocol/methods/userpass.c
         main.c
         system/args.c
         system/args.h
@@ -27,7 +25,7 @@ add_executable(Ace
         misc/utils.c
         misc/utils.h
         misc/chrono.c
-        misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h system/firewall.c system/firewall.h)
+        misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h)
 
 target_link_libraries(Ace pthread m)
 target_include_directories(Ace PUBLIC .)

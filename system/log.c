@@ -26,7 +26,6 @@ bool log_open()
     return FALSE;
 }
 
-
 void log_close()
 {
     if(logFile != NULL) fclose(logFile);

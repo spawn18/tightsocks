@@ -1,12 +1,10 @@
 #include "request.h"
 
-#include "protocol/methods/userpass.h"
 #include "network/io.h"
 #include "system/options.h"
 #include "reply.h"
 
 #include <string.h>
-#include <stdio.h>
 
 
 bool SOCKS_get_request(sock_t client, request_t *req)

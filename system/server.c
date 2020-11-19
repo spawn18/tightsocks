@@ -8,8 +8,6 @@
 #include "protocol/commands/udp_associate.h"
 #include "protocol/method_exchange.h"
 #include "system/options.h"
-#include "firewall.h"
-#include "protocol/reply.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -27,7 +25,6 @@ static int totalConns = 0;
 static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 // TODO: Why does incorrect network-byte order work?
-// TODO: Prob regex firewall
 
 void* handle_client(void* arg)
 {
@@ -48,23 +45,12 @@ void* handle_client(void* arg)
                 {
                     log_entry_t entry = {0};
 
-                    host_to_p(&addr, entry.srcHost, entry.srcPort);
-                    cmd_to_p(req.CMD, entry.command);
-                    atyp_to_p(req.ATYP, entry.addrType);
-                    req_host_to_p(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
+                    hosttop(&addr, entry.srcHost, entry.srcPort);
+                    cmdtop(req.CMD, entry.command);
+                    atyptop(req.ATYP, entry.addrType);
+                    reqhosttop(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
 
                     log_write(&entry);
-                }
-            }
-
-            if(IS_OPT_SET(OPT_FIREWALL))
-            {
-                fw_rule_t rule = {0};
-                req_host_to_p(req.ATYP, req.DSTADDR, req.DSTPORT, rule.host, rule.port);
-                if(fw_find(&rule))
-                {
-                    SOCKS_reply_fail(client, REP_CONN_NOT_ALLOWED);
-                    goto exit;
                 }
             }
 
@@ -74,7 +60,6 @@ void* handle_client(void* arg)
         }
     }
 
-exit:;
     close(client);
 
     pthread_mutex_lock(&mut);
@@ -97,18 +82,50 @@ void serve()
         int on = 1;
         setsockopt(serv4, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-        if(serv4 == -1) exit(-1);
+        if(serv4 != -1)
+        {
+            INFO("Created IPv4 socket");
+        }
+        else
+        {
+            ERR("Failed to create IPv4 socket", strerror(errno));
+            exit(-1);
+        }
 
-        struct sockaddr_in addr4;
+        struct sockaddr_in addr4 = {0};
         addr4.sin_family = AF_INET;
         addr4.sin_addr.s_addr = INADDR_ANY;
         addr4.sin_port = htons(PORT);
 
-        if(bind(serv4, (struct sockaddr*)&addr4, sizeof(addr4)) == -1) exit(-1);
+        if(bind(serv4, (struct sockaddr*)&addr4, sizeof(addr4)) == 0)
+        {
+            INFO("Bound address");
+        }
+        else
+        {
+            ERR("Failed to bind address", strerror(errno));
+            exit(-1);
+        }
 
-        if(listen(serv4, MAX_CONNS) == -1) exit(-1);
+        if(listen(serv4, MAX_CONNS) == 0)
+        {
+            INFO("Listening...");
+        }
+        else
+        {
+            ERR("Listen failed", strerror(errno));
+            exit(-1);
+        }
 
-        fcntl(serv4, F_SETFL, O_NONBLOCK);
+        if(fcntl(serv4, F_SETFL, O_NONBLOCK) != -1)
+        {
+           INFO("Socket switched to non-blocking mode");
+        }
+        else
+        {
+            ERR("Failed to switch socket to non-blocking mode", strerror(errno));
+            exit(-1);
+        }
 
         serv = serv4;
     }
@@ -122,39 +139,91 @@ void serve()
         setsockopt(serv6, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
         setsockopt(serv6, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-        if(serv6 == -1) exit(-1);
+        if(serv6 != -1)
+        {
+            INFO("Created IPv6 socket");
+        }
+        else
+        {
+            ERR("Failed to create IPv6 socket", strerror(errno));
+            exit(-1);
+        }
 
-        struct sockaddr_in6 addr6;
+        struct sockaddr_in6 addr6 = {0};
         addr6.sin6_family = AF_INET6;
         addr6.sin6_addr = in6addr_any;
         addr6.sin6_port = htons(PORT);
 
-        if(bind(serv6, (struct sockaddr*)&addr6, sizeof(addr6)) == -1) exit(-1);
+        if(bind(serv6, (struct sockaddr*)&addr6, sizeof(addr6)) == 0)
+        {
+            INFO("Bound address");
+        }
+        else
+        {
+            ERR("Failed to bind address", strerror(errno));
+            exit(-1);
+        }
 
-        if(listen(serv6, MAX_CONNS) == -1) exit(-1);
+        if(listen(serv6, MAX_CONNS) == 0)
+        {
+            INFO("Listening...");
+        }
+        else
+        {
+            ERR("Listen failed", strerror(errno));
+            exit(-1);
+        }
 
-        fcntl(serv6, F_SETFL, O_NONBLOCK);
+        if(fcntl(serv6, F_SETFL, O_NONBLOCK) != -1)
+        {
+            INFO("Socket switched to non-blocking mode");
+        }
+        else
+        {
+            ERR("Failed to switch socket to non-blocking mode", strerror(errno));
+            exit(-1);
+        }
+
 
         serv = serv6;
     }
 
+    INFO("Server started!");
+
     while(1)
     {
-        if (totalConns > MAX_CONNS) continue;
+        if (totalConns > MAX_CONNS)
+        {
+            INFO("Maximum number of parallel connections reached");
+            continue;
+        }
 
         int client = accept(serv, NULL, NULL);
+
         if(client != -1)
         {
             pthread_mutex_lock(&mut);
             ++totalConns;
             pthread_mutex_unlock(&mut);
 
-            pthread_t t = 0;
-            int* arg = malloc(sizeof(client));
+            int *arg = malloc(sizeof(client));
             *arg = client;
+
+            pthread_t t = 0;
             if (pthread_create(&t, NULL, handle_client, arg) == 0)
             {
                 pthread_detach(t);
+            }
+            else
+            {
+                WARN("Failed to create thread for client");
+            }
+        }
+        else
+        {
+            if(errno != EAGAIN || errno != EWOULDBLOCK)
+            {
+                WARN("Accept() failed");
             }
         }
 

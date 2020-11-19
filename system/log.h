@@ -2,7 +2,6 @@
 #define ACE_LOG_H
 
 #include "misc/defs.h"
-#include "protocol/request.h"
 
 
 typedef struct LOG_ENTRY_T
@@ -19,4 +18,4 @@ typedef struct LOG_ENTRY_T
 bool log_open();
 void log_write(const log_entry_t*);
 
-#endif 
+#endif
