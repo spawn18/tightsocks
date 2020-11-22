@@ -109,11 +109,11 @@ void usage(char* name)
            "  -4, --ipv4                                accept IPv4 connections\n"
            "  -6, --ipv6                                accept IPv6 connections\n"
            "                                            if unset, both are assumed\n"
-           "  -a, --log-access[=PATH]                    enable access logging to csv file\n"
+           "  -l, --log                                 enable access logging to csv file\n"
            "  -p, --port=NUMBER                         set server port [default: 1080]\n"
            "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
            "  -d, --daemon                              daemonize\n"
-           "  -v, --verbose                              print information\n"
+           "  -v, --verbose                             print information\n"
            "  -h, --help                                print this usage guide \n", name);
 }
 
