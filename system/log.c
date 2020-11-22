@@ -39,7 +39,7 @@ void log_write(const log_entry_t *entry)
     char time[TIME_LEN + 1] = {0};
     get_time(time);
 
-    char str[BUFSIZE + 1] = {0};
+    char str[512] = {0};
 
     strcat(str, date);
     strcat(str, ",");
@@ -49,7 +49,7 @@ void log_write(const log_entry_t *entry)
     strcat(str, ",");
     strcat(str, entry->srcPort);
     strcat(str, ",");
-    strcat(str, entry->command);
+    strcat(str, entry->cmd);
     strcat(str, ",");
     strcat(str, entry->addrType);
     strcat(str, ",");

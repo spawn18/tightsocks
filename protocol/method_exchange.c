@@ -5,7 +5,7 @@
 
 bool SOCKS_handle_method(sock_t client)
 {
-    char buf[BUFSIZE + 1];
+    char buf[257];
 
     if(recv_all(client, buf, 2) > 0)
     {

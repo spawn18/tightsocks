@@ -9,7 +9,7 @@
 
 bool SOCKS_get_request(sock_t client, request_t *req)
 {
-    char buf[BUFSIZE + 1];
+    char buf[261];
 
     if (recv_all(client, buf, 5) < 0) return FALSE;
 

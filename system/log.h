@@ -8,7 +8,7 @@ typedef struct LOG_ENTRY_T
 {
     char srcHost[255 + 1];
     char srcPort[255 + 1];
-    char command[255 + 1];
+    char cmd[255 + 1];
     char addrType[255 + 1];
     char dstHost[255 + 1];
     char dstPort[255 + 1];

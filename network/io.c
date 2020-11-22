@@ -51,48 +51,33 @@ void handle_io(sock_t s1, sock_t s2)
     fds[1].fd = s2;
     fds[1].events = POLLIN | POLLOUT;
 
-    int size = 1 << 16;
+    int size = 1 << 16; // 65535 bytes
     char buf[size];
 
     while(1)
     {
-        int s = poll(fds, 2, 10000);
-        if(s > 0)
+        if(poll(fds, 2, 10000) <= 0) break;
+
+        if(fds[0].revents & POLLIN)
         {
-            if(fds[0].revents & POLLIN)
+            if(fds[1].revents & POLLOUT)
             {
-                if(fds[1].revents & POLLOUT)
-                {
-                    int b = recv(fds[0].fd, buf, size, 0);
+                int b = recv(fds[0].fd, buf, size, 0);
 
-                    if(b > 0)
-                    {
-                        if(!send_all(fds[1].fd, buf, b)) break;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if(fds[1].revents & POLLIN)
-            {
-                if((fds[0].revents & POLLOUT))
-                {
-                    int b = recv(fds[1].fd, buf, size, 0);
-
-                    if(b > 0)
-                    {
-                        if(!send_all(fds[0].fd, buf, b)) break;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
+                if(b <= 0) break;
+                if(!send_all(fds[1].fd, buf, b)) break;
             }
         }
-        else break;
+
+        if(fds[1].revents & POLLIN)
+        {
+            if((fds[0].revents & POLLOUT))
+            {
+                int b = recv(fds[1].fd, buf, size, 0);
+
+                if(b <= 0) break;
+                if(!send_all(fds[0].fd, buf, b)) break;
+            }
+        }
     }
 }

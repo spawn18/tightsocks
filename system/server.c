@@ -24,8 +24,6 @@
 static int totalConns = 0;
 static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-// TODO: Why does incorrect network-byte order work?
-
 void* handle_client(void* arg)
 {
     sock_t client = *(sock_t*)arg;
@@ -46,7 +44,7 @@ void* handle_client(void* arg)
                     log_entry_t entry = {0};
 
                     hosttop(&addr, entry.srcHost, entry.srcPort);
-                    cmdtop(req.CMD, entry.command);
+                    cmdtop(req.CMD, entry.cmd);
                     atyptop(req.ATYP, entry.addrType);
                     reqhosttop(req.ATYP, req.DSTADDR, req.DSTPORT, entry.dstHost, entry.dstPort);
 

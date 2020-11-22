@@ -20,8 +20,8 @@ bool SOCKS_reply_fail(sock_t client, rep_t REP)
 
 bool SOCKS_reply(sock_t client, reply_t *reply)
 {
-    char buf[BUFSIZE + 1] = {0};
-    int size = 4;
+    char buf[261] = {0};
+    int len = 4;
 
     buf[0] = reply->VER;
     buf[1] = reply->REP;
@@ -32,14 +32,14 @@ bool SOCKS_reply(sock_t client, reply_t *reply)
     {
         memcpy(&buf[4], reply->BNDADDR, 4);
         memcpy(&buf[8], reply->BNDPORT, 2);
-        size += 6;
+        len += 6;
     }
     else
     {
         memcpy(&buf[4], reply->BNDADDR, 16);
         memcpy(&buf[20], reply->BNDPORT, 2);
-        size += 18;
+        len += 18;
     }
 
-    return send_all(client, buf, size);
+    return send_all(client, buf, len);
 }

@@ -20,7 +20,6 @@ static void itos(int d, char* s)
 {
     int n = count_digits(d);
     s[n] = '\0';
-
     for(int i = n-1; i >= 0; i--)
     {
         s[i] =  (char)(d % 10 + 48);
@@ -31,9 +30,7 @@ static void itos(int d, char* s)
 static int memtoi(void* mem, int n)
 {
     char* cmem = (char*)mem;
-
     int r = 0;
-
     for(int i = 0; i < n; i++)
     {
         r |= cmem[i] << (8*i);
