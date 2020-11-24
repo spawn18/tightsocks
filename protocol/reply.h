@@ -1,5 +1,5 @@
-#ifndef ACE_REPLY_H
-#define ACE_REPLY_H
+#ifndef HOMESOCKS_REPLY_H
+#define HOMESOCKS_REPLY_H
 
 #include "misc/defs.h"
 #include "request.h"

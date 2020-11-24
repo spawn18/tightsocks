@@ -1,5 +1,5 @@
-#ifndef ACE_METHOD_EXCHANGE_H
-#define ACE_METHOD_EXCHANGE_H
+#ifndef HOMESOCKS_METHOD_EXCHANGE_H
+#define HOMESOCKS_METHOD_EXCHANGE_H
 
 #include "misc/defs.h"
 

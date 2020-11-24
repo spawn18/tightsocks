@@ -1,5 +1,5 @@
-#ifndef ACE_BIND_H
-#define ACE_BIND_H
+#ifndef HOMESOCKS_BIND_H
+#define HOMESOCKS_BIND_H
 
 #include "protocol/request.h"
 #include "misc/defs.h"

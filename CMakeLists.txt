@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-project(Ace C)
+project(homesocks C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Ace
+add_executable(homesocks
         network/io.h
         protocol/request.h
         network/io.c
@@ -27,5 +27,5 @@ add_executable(Ace
         misc/chrono.c
         misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h)
 
-target_link_libraries(Ace pthread m)
-target_include_directories(Ace PUBLIC .)
+target_link_libraries(homesocks pthread m)
+target_include_directories(homesocks PUBLIC .)

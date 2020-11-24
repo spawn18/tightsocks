@@ -1,5 +1,5 @@
-#ifndef ACE_OPTIONS_H
-#define ACE_OPTIONS_H
+#ifndef HOMESOCKS_OPTIONS_H
+#define HOMESOCKS_OPTIONS_H
 
 #include "misc/defs.h"
 

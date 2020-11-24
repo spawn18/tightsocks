@@ -1,5 +1,5 @@
-#ifndef ACE_LOG_H
-#define ACE_LOG_H
+#ifndef HOMESOCKS_LOG_H
+#define HOMESOCKS_LOG_H
 
 #include "misc/defs.h"
 

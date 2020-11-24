@@ -1,5 +1,5 @@
-#ifndef ACE_CONNECT_H
-#define ACE_CONNECT_H
+#ifndef HOMESOCKS_CONNECT_H
+#define HOMESOCKS_CONNECT_H
 
 #include "misc/defs.h"
 #include "protocol/request.h"

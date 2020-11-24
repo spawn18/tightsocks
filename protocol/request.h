@@ -1,6 +1,6 @@
 
-#ifndef SOCKS_H
-#define SOCKS_H
+#ifndef HOMESOCKS_REQUEST_H
+#define HOMESOCKS_REQUEST_H
 
 #include "misc/defs.h"
 

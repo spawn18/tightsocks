@@ -1,5 +1,5 @@
-#ifndef ACE_ARGS_H
-#define ACE_ARGS_H
+#ifndef HOMESOCKS_ARGS_H
+#define HOMESOCKS_ARGS_H
 
 
 void handle_args(int, char**);

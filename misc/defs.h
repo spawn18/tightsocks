@@ -1,5 +1,5 @@
-#ifndef ACE_DEFS_H
-#define ACE_DEFS_H
+#ifndef HOMESOCKS_DEFS_H
+#define HOMESOCKS_DEFS_H
 
 typedef int sock_t;
 typedef int bool;
