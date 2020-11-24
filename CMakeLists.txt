@@ -27,5 +27,5 @@ add_executable(homesocks
         misc/chrono.c
         misc/chrono.h protocol/commands/connect.c protocol/commands/connect.h protocol/commands/bind.c protocol/commands/bind.h protocol/commands/udp_associate.c protocol/commands/udp_associate.h)
 
-target_link_libraries(homesocks pthread m)
+target_link_libraries(homesocks pthread)
 target_include_directories(homesocks PUBLIC .)

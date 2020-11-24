@@ -18,10 +18,6 @@ void SOCKS_connect(sock_t client, atyp_t atyp, char* dstaddr, char* dstport)
     reply_t reply = {0};
     reply.VER = SOCKS_VER;
     reply.REP = REP_GENERAL_FAILURE;
-    reply.RSV = 0;
-    reply.ATYP = 0;
-    memset(reply.BNDADDR, 0, 255);
-    memset(reply.BNDPORT, 0, 2);
 
     if(atyp == ATYP_DOMAINNAME)
     {
