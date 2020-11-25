@@ -69,7 +69,7 @@ void SOCKS_udp_associate(sock_t client, atyp_t atyp, char* host, char* port)
                     memcpy(reply.BNDPORT, &((struct sockaddr_in6*)&addr)->sin6_port, 2);
                 }
 
-                SOCKS_reply(client, &r);
+                SOCKS_reply(client, &reply);
                 relay_dgrams(client, dgramSock);
                 return;
             }
