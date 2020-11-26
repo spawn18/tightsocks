@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <string.h>
 
-void hosttop(const struct sockaddr_storage *addr, char* host, char* port);
+void hosttop(const struct sockaddr_storage *, char *, char *);
 void reqhosttop(atyp_t, const char *, const char *, char *, char *);
 
 static inline void cmdtop(cmd_t cmd, char *str)

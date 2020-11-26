@@ -84,11 +84,64 @@ void SOCKS_udp_associate(sock_t client, atyp_t atyp, char* host, char* port)
 // TODO: Bind cmd
 // TODO: daemon
 
-void relay_dgrams(sock_t tcpSock, sock_t udpSock)
+void relay_dgrams(sock_t client, sock_t udpSock)
 {
-    struct sockaddr_storage addr;
-    socklen_t len = sizeof(addr);
+    struct sockaddr_storage clientAddr;
+    socklen_t clientLen = sizeof(addr);
 
-    char buf[1500];
-    recvfrom(udpSock, buf, 1500, 0, (struct sockaddr*)&addr, &len);
+    if(getpeername(client, clientAddr, &clientLen) == 0)
+    {
+        struct sockaddr_storage srcAddr;
+        socklen_t srcLen = sizeof(srcAddr);
+
+        char buf[1500];
+        recvfrom(udpSock, buf, 1500, 0, srcAddr, srcLen);
+
+        if(is_addr_equal(&clientAddr, &srcAddr))
+        {
+            struct sockaddr_storage addr;
+
+            if(buf[3] == ATYP_IPV4)
+            {
+                memcpy(&((struct sockaddr_in*)&addr)->sin_addr.s_addr, buf[4], 4);
+                memcpy(&((struct sockaddr_in*)&addr)->sin_addr.s_addr, buf[5], 2);
+            }
+            else if(buf[3] == ATYP_IPV6)
+            {
+                memcpy(&((struct sockaddr_in6*)&addr)->sin6_addr.s6_addr, buf[4], 16);
+                memcpy(&((struct sockaddr_in6*)&addr)->sin6_port, buf[5], 2);
+            }
+            else
+            {
+
+            }
+        }
+    }
+}
+
+bool is_addr_equal(struct sockaddr_storage *addr1, struct sockaddr_storage *addr2)
+{
+    if(addr1.ss_family == AF_INET && addr2.ss_family == AF_INET)
+    {
+        if(((struct sockaddr_in*)&addr1)->sin_addr.s_addr == ((struct sockaddr_in*)&addr2)->sin_addr.s_addr)
+        {
+            if(((struct sockaddr_in*)&addr1)->sin_port == ((struct sockaddr_in6*)&addr2)->sin_port)
+            {
+                return TRUE;
+            }
+        }
+    }
+
+    else if(addr1.ss_family == AF_INET6 && addr2.ss_family == AF_INET6)
+    {
+        if(((struct sockaddr_in6*)&addr1)->sin6_addr.s6_addr == ((struct sockaddr_in6*)&addr2)->sin6_addr.s6_addr)
+        {
+            if(((struct sockaddr_in6*)&addr1)->sin6_port == ((struct sockaddr_in6*)&addr2)->sin6_port)
+            {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
 }
