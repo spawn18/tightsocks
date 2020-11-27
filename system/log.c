@@ -13,17 +13,23 @@ bool log_open()
 {
     char* desc = "date,time,\"source host\",\"source port\",command,\"address type\",\"destination host\",\"destination port\"\n";
 
-    logFile = fopen("log.csv", "a+");
+    logFile = fopen("log.csv", "r+");
 
-    if(logFile != NULL)
+    if(logFile == NULL)
     {
+        logFile = fopen("log.csv", "a+");
+        
+        if(logFile == NULL) 
+        {
+            return FALSE;
+        }
+        
         fseek(logFile, 0, SEEK_END);
         fputs(desc, logFile);
-        fflush(logFile);
-        return TRUE;
+        fflush(logFile); 
     }
 
-    return FALSE;
+    return TRUE;
 }
 
 void log_close()

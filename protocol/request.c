@@ -27,7 +27,6 @@ bool SOCKS_get_request(sock_t client, request_t *req)
                 recv_all(client, &buf[5], 5);
                 memcpy(req->DSTADDR, &buf[4], 4);
                 memcpy(req->DSTPORT, &buf[8], 2);
-
             }
             else if (req->ATYP == ATYP_IPV6)
             {

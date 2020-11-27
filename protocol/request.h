@@ -22,12 +22,12 @@ typedef enum ATYP_T
 
 typedef struct REQUEST_T
 {
-    char    VER;
-    cmd_t   CMD;
-    char    RSV;
-    atyp_t  ATYP;
-    char    DSTADDR[255];
-    char    DSTPORT[2];
+    char VER;
+    char CMD;
+    char RSV;
+    char ATYP;
+    char DSTADDR[255];
+    char DSTPORT[2];
 } request_t;
 
 

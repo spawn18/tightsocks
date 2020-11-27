@@ -19,12 +19,12 @@ typedef enum REP_T
 
 typedef struct REPLY_T
 {
-    char    VER;
-    rep_t   REP;
-    char    RSV;
-    atyp_t  ATYP;
-    char    BNDADDR[255];
-    char    BNDPORT[2];
+    char VER;
+    char REP;
+    char RSV;
+    char ATYP;
+    char BNDADDR[255];
+    char BNDPORT[2];
 } reply_t;
 
 bool SOCKS_reply(sock_t, reply_t*);

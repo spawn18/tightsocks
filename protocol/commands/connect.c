@@ -21,9 +21,8 @@ void SOCKS_connect(sock_t client, atyp_t atyp, char* dstaddr, char* dstport)
 
     if(atyp == ATYP_DOMAINNAME)
     {
-        struct addrinfo gaiInfo, *res = NULL;
+        struct addrinfo gaiInfo = {0}, *res = NULL;
 
-        memset(&gaiInfo, 0, sizeof(struct addrinfo));
         gaiInfo.ai_family    = AF_UNSPEC;
         gaiInfo.ai_socktype  = SOCK_STREAM;
         gaiInfo.ai_protocol  = 0;
