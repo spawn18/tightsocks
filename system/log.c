@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <pthread.h>
+#include <unistd.h>
 
 static FILE* logFile = NULL;
 static pthread_mutex_t mut;
