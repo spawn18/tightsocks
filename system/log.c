@@ -67,6 +67,7 @@ void log_write(const log_entry_t *entry)
     pthread_mutex_lock(&mut);
     fputs(str, logFile);
     fflush(logFile);
+    fsync(logFile);
     pthread_mutex_unlock(&mut);
 }
 
