@@ -14,9 +14,7 @@ add_executable(homesocks
         protocol/method_exchange.c
         protocol/reply.c
         protocol/request.c
-        protocol/commands/connect.c 
-	protocol/commands/bind.c
-	protocol/commands/udp_associate.c
+        protocol/commands/connect.c
         main.c)
 
 target_link_libraries(homesocks pthread)
