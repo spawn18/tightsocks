@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(homesocks VERSION 1.0 LANGUAGES C)
 
-
 set(CMAKE_C_STANDARD 99)
 
 add_executable(homesocks
@@ -20,3 +19,11 @@ add_executable(homesocks
 
 target_link_libraries(homesocks pthread)
 target_include_directories(homesocks PUBLIC .)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+        message("Debug config")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+        message("Release config")
+else()
+        message("Unknown config")
+endif()
