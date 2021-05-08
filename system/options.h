@@ -11,8 +11,7 @@ typedef enum OPTION_T
     OPT_MAX_CONNS       = (1 << 4),
     OPT_LOG             = (1 << 5),
     OPT_VERBOSE         = (1 << 6),
-    OPT_DAEMON          = (1 << 7),
-    OPT_BUFSIZE 		= (1 << 8)
+    OPT_BUFSIZE			= (1 << 7),
 } option_t;
 
 extern int BUFSIZE;

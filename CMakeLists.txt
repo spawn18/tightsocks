@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
-project(homesocks C)
+project(homesocks VERSION 1.0 LANGUAGES C)
+
 
 set(CMAKE_C_STANDARD 99)
 
@@ -10,7 +11,7 @@ add_executable(homesocks
         system/server.c
         system/log.c
         misc/utils.c
-	misc/chrono.c
+		misc/chrono.c
         protocol/method_exchange.c
         protocol/reply.c
         protocol/request.c

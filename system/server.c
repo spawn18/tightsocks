@@ -199,7 +199,7 @@ void serve()
     {
         if (totalConns > MAX_CONNS)
         {
-            INFO("Maximum number of parallel connections reached");
+            INFO("Maximum number of connections reached");
             continue;
         }
 
