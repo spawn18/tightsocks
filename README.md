@@ -1,3 +1,3 @@
-# homesocks
-small, practical SOCKS5 proxy server written in C
+# Sequentia
+Tiny proxy server made for educational purposes
 
