@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <sys/socket.h>
 #include <poll.h>
-#include <asm/errno.h>
 #include <errno.h>
 
 
@@ -51,8 +50,7 @@ void handle_io(sock_t s1, sock_t s2)
     fds[1].fd = s2;
     fds[1].events = POLLIN | POLLOUT;
 
-    int size = 1 << 16; // 65535 bytes
-    char buf[size];
+    char buf[BUFSIZE];
 
     while(1)
     {
@@ -62,10 +60,8 @@ void handle_io(sock_t s1, sock_t s2)
         {
             if(fds[1].revents & POLLOUT)
             {
-                int b = recv(fds[0].fd, buf, size, 0);
-
-                if(b <= 0) break;
-                if(!send_all(fds[1].fd, buf, b)) break;
+                int b = recv(fds[0].fd, buf, BUFSIZE, 0);
+                if(b <= 0 || !send_all(fds[1].fd, buf, b)) break;
             }
         }
 
@@ -73,10 +69,8 @@ void handle_io(sock_t s1, sock_t s2)
         {
             if((fds[0].revents & POLLOUT))
             {
-                int b = recv(fds[1].fd, buf, size, 0);
-
-                if(b <= 0) break;
-                if(!send_all(fds[0].fd, buf, b)) break;
+                int b = recv(fds[1].fd, buf, BUFSIZE, 0);
+                if(b <= 0 || !send_all(fds[0].fd, buf, b)) break;
             }
         }
     }

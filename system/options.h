@@ -11,11 +11,13 @@ typedef enum OPTION_T
     OPT_MAX_CONNS       = (1 << 4),
     OPT_LOG             = (1 << 5),
     OPT_VERBOSE         = (1 << 6),
-    OPT_DAEMON          = (1 << 7),
+    OPT_BUFSIZE			= (1 << 7),
 } option_t;
 
+extern int BUFSIZE;
 extern int MAX_CONNS;
 extern unsigned short PORT;
+
 extern option_t OPTIONS;
 
 #define IS_OPT_SET(opt) (OPTIONS & opt)

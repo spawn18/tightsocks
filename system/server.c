@@ -4,8 +4,6 @@
 #include "protocol/request.h"
 #include "log.h"
 #include "protocol/commands/connect.h"
-#include "protocol/commands/bind.h"
-#include "protocol/commands/udp_associate.h"
 #include "protocol/method_exchange.h"
 #include "system/options.h"
 
@@ -52,9 +50,18 @@ void* handle_client(void* arg)
                 }
             }
 
-            if      (req.CMD == CMD_CONNECT)        SOCKS_connect(client, req.ATYP, req.DSTADDR, req.DSTPORT);
-            else if (req.CMD == CMD_BIND)           SOCKS_bind(client, req.ATYP, req.DSTADDR, req.DSTPORT);
-            else if (req.CMD == CMD_UDP_ASSOCIATE)  SOCKS_udp_associate(client, req.ATYP, req.DSTADDR, req.DSTPORT);
+            if(req.CMD == CMD_CONNECT)       
+            {
+              SOCKS_connect(client, req.ATYP, req.DSTADDR, req.DSTPORT);  
+            }
+            else if(req.CMD == CMD_BIND)
+            {
+                // unsupported
+            }
+            else
+            {
+                // unsupported
+            }
         }
     }
 
@@ -192,7 +199,7 @@ void serve()
     {
         if (totalConns > MAX_CONNS)
         {
-            INFO("Maximum number of parallel connections reached");
+            INFO("Maximum number of connections reached");
             continue;
         }
 

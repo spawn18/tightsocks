@@ -14,9 +14,9 @@ struct option long_options[] = {
         {"ipv4", 0, NULL, '4'},
         {"ipv6", 0, NULL, '6'},
         {"verbose", 0, NULL, 'v'},
-        {"daemon", 0, NULL, 'd'},
         {"log", 0, NULL, 'l'},
         {"port", 1, NULL, 'p'},
+        {"bufsize", 1, NULL, 'b'},
         {"max-connections", 1, NULL, 'c'},
         {"help", 0, NULL, 'h'},
 };
@@ -29,7 +29,7 @@ void handle_args(int argc, char** argv)
     int optc = 0;
     do
     {
-        optc = getopt_long(argc, argv, "46vdlp:c:h", long_options, NULL);
+        optc = getopt_long(argc, argv, "46vlp:b:c:h", long_options, NULL);
 
         switch(optc)
         {
@@ -58,15 +58,30 @@ void handle_args(int argc, char** argv)
             {
                 SET_OPT(OPT_PORT);
 
-                long tmp = strtol(optarg, NULL, 10);
-                if(tmp < 0 || 65535 < tmp || errno == ERANGE)
+                PORT = (int)strtol(optarg, NULL, 10);
+
+                if(PORT < 0 || 65535 < PORT || errno == ERANGE)
                 {
                     usage(name);
                     exit(-1);
                 }
 
-                PORT = tmp;
                 break;
+            }
+            case 'b':
+            {
+                SET_OPT(OPT_BUFSIZE);
+
+                BUFSIZE = (int)strtol(optarg, NULL, 10);
+
+                if(errno == ERANGE || BUFSIZE <= 0)
+                {
+                    usage(name);
+                    exit(-1);
+                }
+
+                break;
+
             }
             case 'c':
             {
@@ -112,7 +127,7 @@ void usage(char* name)
            "  -l, --log                                 enable access logging to csv file\n"
            "  -p, --port=NUMBER                         set server port [default: 1080]\n"
            "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
-           "  -d, --daemon                              daemonize\n"
+           "  -b, --bufsize=SIZE                        set data buffer size in bytes [default: 65535]\n"
            "  -v, --verbose                             print information\n"
            "  -h, --help                                print this usage guide \n", name);
 }

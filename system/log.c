@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <pthread.h>
+#include <unistd.h>
 
 static FILE* logFile = NULL;
 static pthread_mutex_t mut;
@@ -18,15 +19,15 @@ bool log_open()
     if(logFile == NULL)
     {
         logFile = fopen("log.csv", "a+");
-        
-        if(logFile == NULL) 
+
+        if(logFile == NULL)
         {
             return FALSE;
         }
-        
+
         fseek(logFile, 0, SEEK_END);
         fputs(desc, logFile);
-        fflush(logFile); 
+        fflush(logFile);
     }
 
     return TRUE;
@@ -67,6 +68,7 @@ void log_write(const log_entry_t *entry)
     pthread_mutex_lock(&mut);
     fputs(str, logFile);
     fflush(logFile);
+    fsync(fileno(logFile));
     pthread_mutex_unlock(&mut);
 }
 
