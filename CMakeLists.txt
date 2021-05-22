@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
-project(sequentia VERSION 1.0 LANGUAGES C)
+project(tightsocks VERSION 1.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(sequentia
+add_executable(tightsocks
         network/io.c
         system/args.c
         system/options.c
@@ -17,8 +17,8 @@ add_executable(sequentia
         protocol/commands/connect.c
         main.c)
 
-target_link_libraries(sequentia pthread)
-target_include_directories(sequentia PUBLIC .)
+target_link_libraries(tightsocks pthread)
+target_include_directories(tightsocks PUBLIC .)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
         message("Debug config")
