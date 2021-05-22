@@ -1,3 +1,2 @@
-# tightsocks
-Tiny proxy server made for educational purposes
+[](https://i.imgur.com/wJ6tGHd.png)
 
