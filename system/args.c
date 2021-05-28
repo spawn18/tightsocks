@@ -144,7 +144,7 @@ void handle_args(int argc, char** argv)
     while(optc != -1);
 
 
-    if(argv[optind] == NULL || argv[optind + 1] == NULL)
+    if(optind < argc)
     {
         usage(name);
         exit(-1);
