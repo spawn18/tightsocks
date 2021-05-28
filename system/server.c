@@ -200,10 +200,10 @@ void serve()
     }
     else 
     {
-        ERR("Log can't be open");
+        ERR("Log can't be open", strerror(errno));
         exit(-1);
     }
-    
+
     INFO("Server started!");
 
     while(1)

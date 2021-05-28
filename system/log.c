@@ -29,7 +29,6 @@ bool log_open()
         fputs(desc, logFile);
         fflush(logFile);
     }
-
     
     return TRUE;
 }

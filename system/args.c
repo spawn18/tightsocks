@@ -136,6 +136,7 @@ void handle_args(int argc, char** argv)
 
             case '?':
             {
+                usage(name);
                 exit(-1);
             }
         }

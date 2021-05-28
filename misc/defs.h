@@ -9,7 +9,7 @@ typedef int bool;
 #define SOCKS_VER 5
 
 #define INFO(m)   if(IS_OPT_SET(OPT_VERBOSE)) printf("[ INFO ] %s\n", m);
-#define ERR(m, e) if(IS_OPT_SET(OPT_VERBOSE)) fprintf(stderr, "[ ERROR ] %s | errno: %s\n", m, e)
+#define ERR(m, e) if(IS_OPT_SET(OPT_VERBOSE)) fprintf(stderr, "[ ERROR ] %s\n%s\n", m, e)
 #define WARN(m)   if(IS_OPT_SET(OPT_VERBOSE)) printf("[ WARNING ]: %s\n", m);
 
 #endif 
