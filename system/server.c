@@ -78,6 +78,7 @@ void* handle_client(void* arg)
 
 void serve()
 {
+
     sock_t serv, serv4, serv6;
 
     if(IS_OPT_SET(OPT_IP4))
@@ -193,6 +194,16 @@ void serve()
         serv = serv6;
     }
 
+    if(log_open()) 
+    {
+        INFO("Log opened");
+    }
+    else 
+    {
+        ERR("Log can't be open");
+        exit(-1);
+    }
+    
     INFO("Server started!");
 
     while(1)

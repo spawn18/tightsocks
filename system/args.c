@@ -55,7 +55,6 @@ void handle_args(int argc, char** argv)
             case 'l':
             {
                 SET_OPT(OPT_LOG);
-                if(!log_open()) exit(-1);
                 break;
             }
 
