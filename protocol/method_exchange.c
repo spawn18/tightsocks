@@ -1,7 +1,8 @@
 #include "method_exchange.h"
 #include "network/io.h"
+#include "system/options.h"
 
-
+#include <string.h>
 
 bool SOCKS_handle_method(sock_t client)
 {
@@ -34,8 +35,8 @@ bool SOCKS_handle_method(sock_t client)
 
                 if (metFinal == MET_NOAUTH) 
                     return TRUE;
-                else if (metFinal == MET_AUTH) 
-                    return authenticate(client);
+                else if (metFinal == MET_USERPASS) 
+                    return auth_userpass(client);
             }
         }
     }
@@ -44,7 +45,7 @@ bool SOCKS_handle_method(sock_t client)
 }
 
 
-bool authenticate(sock_t client)
+bool auth_userpass(sock_t client)
 {
     // Single buffer to avoid unneccesary recv calls
     char buf[513];
@@ -62,11 +63,11 @@ bool authenticate(sock_t client)
                 if(recv_all(client, buf+2+buf[1], 1) > 0)
                 {
                     // Get password
-                    if(recv_all(client, buf+3+buf[1], buf+2+buf[1]) > 0)
+                    if(recv_all(client, buf+3+buf[1], buf[1+buf[1]]) > 0)
                     {
                         // Check username
-                        if( (USERNAME_LEN == buf+1 && strncmp(USERNAME, buf+2, USERNAME_LEN) == 0) &&
-                            (PASSWORD_LEN == buf+2+buf[1] && strncmp(PASSWORD, buf+3+buf[1], PASSWORD_LEN) == 0) )
+                        if( (USERNAME_LEN == buf[1] && strncmp(USERNAME, buf+2, USERNAME_LEN) == 0) &&
+                            (PASSWORD_LEN == buf[1+buf[1]] && strncmp(PASSWORD, buf+3+buf[1], PASSWORD_LEN) == 0) )
                         {
                             char rep[2] = {SOCKS_VER, 0};
                             send_all(client, rep, 2);

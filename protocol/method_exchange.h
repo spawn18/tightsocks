@@ -12,5 +12,6 @@ typedef enum METHOD_T
 } method_t;
 
 bool SOCKS_handle_method(sock_t client);
+bool auth_userpass(sock_t client);
 
 #endif 

@@ -20,6 +20,8 @@ extern int MAX_CONNS;
 extern unsigned short PORT;
 extern char* USERNAME;
 extern char* PASSWORD;
+extern int USERNAME_LEN;
+extern int PASSWORD_LEN;
 
 extern option_t OPTIONS;
 
