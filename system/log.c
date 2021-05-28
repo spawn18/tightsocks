@@ -30,6 +30,7 @@ bool log_open()
         fflush(logFile);
     }
 
+    
     return TRUE;
 }
 
