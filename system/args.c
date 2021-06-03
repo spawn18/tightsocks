@@ -169,7 +169,7 @@ void usage(char* name)
            "  -c, --max-connections=LIMIT               limit for connections [default: 1024]\n"
            "  -b, --bufsize=SIZE                        set data buffer size in bytes [default: 65535]\n"
            "  -a, --auth=CREDENTIALS                    enable authentication with login and password\n"
-           "                                            CREDENTIALS must be in the \"USERNAME PASSWORD\" form"
+           "                                            CREDENTIALS must be in the \"USERNAME PASSWORD\" form\n"
            "  -v, --verbose                             print information\n"
            "  -h, --help                                print this usage guide \n", name);
 }
