@@ -194,14 +194,17 @@ void serve()
         serv = serv6;
     }
 
-    if(log_open()) 
+    if(IS_OPT_SET(OPT_LOG))
     {
-        INFO("Log opened");
-    }
-    else 
-    {
-        ERR("Log can't be open", strerror(errno));
-        exit(-1);
+        if(log_open()) 
+        {
+            INFO("Log opened");
+        }
+        else 
+        {
+            ERR("Log can't be open", strerror(errno));
+            exit(-1);
+        }
     }
 
     INFO("Server started!");

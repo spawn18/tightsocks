@@ -23,10 +23,13 @@ bool SOCKS_handle_method(sock_t client)
                         metFinal = MET_NOAUTH;
                         break;
                     }
-                    else if (buf[2+i] == MET_USERPASS && IS_OPT_SET(OPT_AUTH))
+                    else if (buf[2+i] == MET_USERPASS)
                     {
-                        metFinal = MET_USERPASS;
-                        break;
+                        if(IS_OPT_SET(OPT_AUTH))
+                        {
+                            metFinal = MET_USERPASS;
+                            break;
+                        }
                     }
                 }
 
