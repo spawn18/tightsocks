@@ -110,6 +110,9 @@ void handle_args(int argc, char** argv)
                 strcpy(USERNAME, user);
                 strcpy(PASSWORD, pass);
 
+                printf("%s\n", USERNAME);
+                printf("%s\n", PASSWORD);
+
                 break;
             }
 
