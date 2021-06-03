@@ -18,16 +18,19 @@ bool SOCKS_handle_method(sock_t client)
 
                 for (int i = 0; i < buf[1]; i++)
                 {
-                    if (buf[2+i] == MET_NOAUTH)
+                    if(IS_OPT_SET(OPT_AUTH))
                     {
-                        metFinal = MET_NOAUTH;
-                        break;
-                    }
-                    else if (buf[2+i] == MET_USERPASS)
-                    {
-                        if(IS_OPT_SET(OPT_AUTH))
+                        if (buf[2+i] == MET_USERPASS)
                         {
                             metFinal = MET_USERPASS;
+                            break;
+                        } 
+                    }
+                    else 
+                    {
+                        if (buf[2+i] == MET_NOAUTH)
+                        {
+                            metFinal = MET_NOAUTH;
                             break;
                         }
                     }
