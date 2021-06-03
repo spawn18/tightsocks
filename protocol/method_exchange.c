@@ -3,6 +3,7 @@
 #include "system/options.h"
 
 #include <string.h>
+#include <stdio.h>
 
 bool SOCKS_handle_method(sock_t client)
 {
@@ -62,19 +63,24 @@ bool auth_userpass(sock_t client)
         // Check version and username length
         if(buf[0] == 1 && buf[1] != 0)
         {
+            printf("1\n");
             // Get username
             if(recv_all(client, buf+2, buf[1]) > 0)
             {
+                printf("2\n");
                 // Get password length
                 if(recv_all(client, buf+2+buf[1], 1) > 0)
                 {
+                    printf("3\n");
                     // Get password
                     if(recv_all(client, buf+3+buf[1], buf[1+buf[1]]) > 0)
                     {
+                        printf("4\n");
                         // Check username
                         if( (USERNAME_LEN == buf[1] && strncmp(USERNAME, buf+2, USERNAME_LEN) == 0) &&
                             (PASSWORD_LEN == buf[1+buf[1]] && strncmp(PASSWORD, buf+3+buf[1], PASSWORD_LEN) == 0) )
                         {
+                            printf("5\n");
                             char rep[2] = {SOCKS_VER, 0};
                             send_all(client, rep, 2);
 
