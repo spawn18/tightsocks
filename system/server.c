@@ -207,6 +207,15 @@ void serve()
         }
     }
 
+    if(IS_OPT_SET(OPT_AUTH))
+    {
+        INFO("Username/Password authentication enabled")
+    }
+    else 
+    {   
+        INFO("No aunthentication enabled")
+    }
+    
     INFO("Server started!");
 
     while(1)
