@@ -73,7 +73,7 @@ bool auth_userpass(sock_t client)
                 {
                     printf("3\n");
                     // Get password
-                    if(recv_all(client, buf+3+buf[1], buf[1+buf[1]]) > 0)
+                    if(recv_all(client, buf+3+buf[1], buf[2+buf[1]]) > 0)
                     {
                         printf("4\n");
                         // Check username
